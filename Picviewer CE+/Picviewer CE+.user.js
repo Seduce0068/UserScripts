@@ -12,7 +12,7 @@
 // @description:ja       画像を強力に閲覧できるツール。ポップアップ表示、拡大・縮小、回転、一括保存などの機能を自動で実行できます
 // @description:pt-BR    Poderosa ferramenta de visualização de imagens on-line, que pode pop-up/dimensionar/girar/salvar em lote imagens automaticamente
 // @description:ru       Мощный онлайн-инструмент для просмотра изображений, который может автоматически отображать/масштабировать/вращать/пакетно сохранять изображения
-// @version              2025.7.5.1
+// @version              2025.12.2.1
 // @icon                 data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAAV1BMVEUAAAD////29vbKysoqKioiIiKysrKhoaGTk5N9fX3z8/Pv7+/r6+vk5OTb29vOzs6Ojo5UVFQzMzMZGRkREREMDAy4uLisrKylpaV4eHhkZGRPT08/Pz/IfxjQAAAAgklEQVQoz53RRw7DIBBAUb5pxr2m3/+ckfDImwyJlL9DDzQgDIUMRu1vWOxTBdeM+onApENF0qHjpkOk2VTwLVEF40Kbfj1wK8AVu2pQA1aBBYDHJ1wy9Cf4cXD5chzNAvsAnc8TjoLAhIzsBao9w1rlVTIvkOYMd9nm6xPi168t9AYkbANdajpjcwAAAABJRU5ErkJggg==
 // @namespace            https://github.com/hoothin/UserScripts
 // @homepage             https://github.com/hoothin/UserScripts/tree/master/Picviewer%20CE%2B
@@ -46,10 +46,8 @@
 // @grant                GM.notification
 // @grant                unsafeWindow
 // @require              https://update.greasyfork.org/scripts/6158/23710/GM_config%20CN.js
-// @require              https://update.greasyfork.org/scripts/438080/1615955/pvcep_rules.js
-// @require              https://update.greasyfork.org/scripts/440698/1427239/pvcep_lang.js
-// @downloadURL          https://greasyfork.org/scripts/24204-picviewer-ce/code/Picviewer%20CE+.user.js
-// @updateURL            https://greasyfork.org/scripts/24204-picviewer-ce/code/Picviewer%20CE+.meta.js
+// @require              https://update.greasyfork.org/scripts/438080/1705900/pvcep_rules.js
+// @require              https://update.greasyfork.org/scripts/440698/1653424/pvcep_lang.js
 // @match                *://*/*
 // @exclude              http://www.toodledo.com/tasks/*
 // @exclude              http*://maps.google.com*/*
@@ -11978,13 +11976,6 @@ ImgOps | https://imgops.com/#b#`;
     }else{
         _GM_setClipboard=(s)=>{};
     }
-    if(typeof GM_xmlhttpRequest!='undefined'){
-        _GM_xmlhttpRequest=GM_xmlhttpRequest;
-    }else if(typeof GM!='undefined' && typeof GM.xmlHttpRequest!='undefined'){
-        _GM_xmlhttpRequest=GM.xmlHttpRequest;
-    }else{
-        _GM_xmlhttpRequest=(f)=>{fetch(f.url).then(response=>response.text()).then(data=>{let res={response:data};f.onload(res)}).catch(f.onerror())};
-    }
     if(typeof GM_registerMenuCommand!='undefined'){
         _GM_registerMenuCommand=GM_registerMenuCommand;
     }else if(typeof GM!='undefined' && typeof GM.registerMenuCommand!='undefined'){
@@ -12006,7 +11997,7 @@ ImgOps | https://imgops.com/#b#`;
         _GM_xmlhttpRequest = GM.xmlHttpRequest;
         GM_fetch = true;
     } else {
-        _GM_xmlhttpRequest = (f) => {fetch(f.url, {method: f.method || 'GET', body: f.data || '', headers: f.headers}).then(response => response.text()).then(data => {f.onload({response: data})}).catch(f.onerror())};
+        _GM_xmlhttpRequest = (f) => {fetch(f.url, (f.method && f.method !== 'GET' ? {method: f.method || 'GET', body: f.data || '', headers: f.headers} : {method: 'GET', headers: f.headers})).then(response => response.text()).then(data => {f.onload({response: data})}).catch(e => f.onerror())};
     }
     if (typeof GM_addStyle != 'undefined') {
         _GM_addStyle = GM_addStyle;
@@ -12124,22 +12115,22 @@ ImgOps | https://imgops.com/#b#`;
         }
         switch (type) {
             case 1:
-                name = (name || nameFromUrl || "image").substr(-80);
+                name = (name || nameFromUrl || "image").substr(-200);
                 break;
             case 2:
-                name = (nameFromUrl || url || "image").substr(-80);
+                name = (nameFromUrl || url || "image").substr(-200);
                 break;
             case 3:
                 if (nameFromUrl && !name) {
-                    name = nameFromUrl.substr(-80);
+                    name = nameFromUrl.substr(-200);
                 } else if (nameFromUrl && name) {
-                    name = nameFromUrl.substr(-80) + " - " + name.substr(-80);
+                    name = nameFromUrl.substr(-200) + " - " + name.substr(-200);
                 } else if (!nameFromUrl && !name) {
                     name = "image";
                 }
                 break;
             default:
-                name = (nameFromUrl || name || "image").substr(-80);
+                name = (nameFromUrl || name || "image").substr(-200);
                 break;
         }
         return name.replace(/.*?\/([^\/\?]+?)(\?|@|$).*/, "$1").replace(/[\*\/:<>\?\\\|]/g, "").replace(/\.\w{2,5}$/, "").trim() + (ext || ".png");
@@ -12164,6 +12155,7 @@ ImgOps | https://imgops.com/#b#`;
         var root_page = /^[^\?#]*\//.exec(url)[0],
             root_domain = /^\w+\:\/\/\/?[^\/]+/.exec(root_page)[0],
             absolute_regex = /^\w+\:\/\//;
+        src = src.replace(/^\/(\.\.\/)+/, "/");
         while (src.indexOf("../") === 0) {
             src = src.substr(3);
             root_page = root_page.replace(/\/[^\/]+\/$/, "/");
@@ -12226,6 +12218,184 @@ ImgOps | https://imgops.com/#b#`;
         };
         img.src = dataurl;
     }
+    function urlToBlobWithFetch(urlString, cb){
+        fetch(urlString).then(response => response.blob()).then(blob => {
+            let ext = blob.type.replace(/.*image\/([\w\-]+).*/, "$1");
+            if (ext && ext.indexOf("text/html") === 0 && (blob.size || 0) < 1000) return cb(null, '');
+            if (ext === "none") ext = "webp";
+            let conversion = formatDict.get(ext);
+            if (canvas && conversion) {
+                var self = this;
+                var a = new FileReader();
+                a.readAsDataURL(blob);
+                a.onload = function (e) {
+                    dataURLToCanvas(e.target.result, canvas => {
+                        canvas.toBlob(nblob => {
+                            if (!nblob) {
+                                cb(blob);
+                            } else {
+                                cb(nblob, conversion || "png");
+                            }
+                        }, "image/" + (conversion || "png"));
+                    });
+                };
+                a.onerror = function (e){
+                    cb(blob);
+                }
+            } else {
+                cb(blob);
+            }
+        }).catch(error => {
+            cb(null);
+        });
+    }
+    function loadVideoJsLibrary() {
+        if (!window.videoJsStatus) {
+            window.videoJsStatus = 'none';
+        }
+
+        return new Promise((resolve, reject) => {
+            if (window.videoJsStatus === 'loaded') {
+                return resolve();
+            }
+
+            if (window.videoJsStatus === 'loading') {
+                const interval = setInterval(() => {
+                    if (window.videoJsStatus === 'loaded') {
+                        clearInterval(interval);
+                        resolve();
+                    } else if (window.videoJsStatus === 'failed') {
+                        clearInterval(interval);
+                        reject(new Error('Previous Video.js loading attempt failed.'));
+                    }
+                }, 100);
+                return;
+            }
+
+            window.videoJsStatus = 'loading';
+
+            const cssSources = [
+                "https://vjs.zencdn.net/8.23.3/video-js.min.css",
+                "https://unpkg.com/video.js/dist/video-js.min.css",
+                "https://cdn.jsdelivr.net/npm/video.js@8.23.3/dist/video-js.min.css"
+            ];
+            const jsSources = [
+                "https://vjs.zencdn.net/8.23.3/video.min.js",
+                "https://unpkg.com/video.js/dist/video.min.js",
+                "https://cdn.jsdelivr.net/npm/video.js@8.23.3/dist/video.min.js"
+            ];
+            const fetchWithFallback = (urls) => {
+                return new Promise((resolve, reject) => {
+                    let lastError = null;
+                    const urlsToTry = [...urls];
+
+                    const tryNext = () => {
+                        if (urlsToTry.length === 0) {
+                            reject(new Error(`Failed to load resource after trying all sources. Last error: ${lastError}`));
+                            return;
+                        }
+
+                        const url = urlsToTry.shift();
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('GET', url);
+                        xhr.onload = () => {
+                            if (xhr.status === 200) {
+                                resolve(xhr.responseText);
+                            } else {
+                                lastError = `Status ${xhr.status} from ${url}`;
+                                console.warn(`Failed to load ${url}, trying next source...`);
+                                tryNext();
+                            }
+                        };
+                        xhr.onerror = () => {
+                            lastError = `Network error from ${url}`;
+                            console.warn(`Failed to load ${url}, trying next source...`);
+                            tryNext();
+                        };
+                        xhr.send();
+                    };
+
+                    tryNext();
+                });
+            };
+            const pCSS = fetchWithFallback(cssSources).then(cssContent => {
+                const styleElement = document.createElement('style');
+                styleElement.textContent = cssContent;
+                styleElement.id = 'imagus-videojs-styles';
+                document.head.appendChild(styleElement);
+            });
+            const pJS = fetchWithFallback(jsSources).then(jsContent => {
+                Function(jsContent)();
+            });
+
+            Promise.all([pCSS, pJS]).then(() => {
+                window.videoJsStatus = 'loaded';
+                console.timeEnd('Load Video.js');
+                resolve();
+            }).catch(error => {
+                window.videoJsStatus = 'failed';
+                console.error('Failed to load Video.js from all available sources.', error);
+                reject(error);
+            });
+        });
+    }
+    async function initVideojs(media, imgSrc) {
+        await loadVideoJsLibrary();
+        const videoOptions = {
+            autoplay: true
+        };
+        media.className = "video-js vjs-default-skin vjs-fluid";
+        media.width = 1920;
+        media.height = 1080;
+        const player = videojs(media, videoOptions);
+        player.on('loadedmetadata', function() {
+            const vhs = player.tech({ IWillNotUseThisInPlugins: true }).vhs;
+            if (!vhs) {
+                console.warn('VHS engine not found.');
+                return;
+            }
+            const representations = vhs.representations();
+            if (!representations || representations.length === 0) {
+                return;
+            }
+            let highestBandwidth = 0;
+            let highestRepresentation = null;
+            for (let i = 0; i < representations.length; i++) {
+                const representation = representations[i];
+                if (representation.bandwidth > highestBandwidth) {
+                    highestBandwidth = representation.bandwidth;
+                    highestRepresentation = representation;
+                }
+            }
+            if (highestRepresentation) {
+                representations.forEach(representation => {
+                    representation.enabled(representation.id === highestRepresentation.id);
+                });
+            }
+            const originalWidth = highestRepresentation ? highestRepresentation.width : player.videoWidth();
+            const originalHeight = highestRepresentation ? highestRepresentation.height : player.videoHeight();
+            this.addClass('vjs-has-started');
+            media.naturalWidth = originalWidth;
+            media.naturalHeight = originalHeight;
+            media.onload();
+        });
+        player.src({
+            src: imgSrc,
+            fluid: true,
+            type: 'application/x-mpegURL'
+        });
+    }
+    function getCookie(cname) {
+        let name = cname + "=";
+        var ca = document.cookie.split(';');
+        for(let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1);
+            if (c.indexOf(name) == 0)
+                return c.substring(name.length,c.length);
+        }
+        return "";
+    }
     var cookie;
     function urlToBlob(url, cb, forcePng, tryTimes = 0) {
         tryTimes++;
@@ -12247,7 +12417,11 @@ ImgOps | https://imgops.com/#b#`;
                 let blob = d.response;
                 if (!blob.type) return urlToBlob(url, cb, forcePng, tryTimes);
                 let ext = blob.type.replace(/.*image\/([\w\-]+).*/, "$1");
-                if (ext === "text/html" && (blob.size || 0) < 1000) return cb(null, '');
+                if (ext && ext.indexOf("text/html") === 0 && (blob.size || 0) < 100000) {
+                    urlToBlobWithFetch(url, cb);
+                    return;
+                }
+                if (ext === "none") ext = "webp";
                 let conversion = formatDict.get(ext);
                 if (canvas && (conversion || forcePng)) {
                     var self = this;
@@ -12255,8 +12429,12 @@ ImgOps | https://imgops.com/#b#`;
                     a.readAsDataURL(blob);
                     a.onload = function (e) {
                         dataURLToCanvas(e.target.result, canvas => {
-                            canvas.toBlob(blob => {
-                                cb(blob, conversion || "png");
+                            canvas.toBlob(nblob => {
+                                if (!nblob) {
+                                    cb(blob, ext || "png");
+                                } else {
+                                    cb(nblob, conversion || "png");
+                                }
                             }, "image/" + (conversion || "png"));
                         });
                     };
@@ -12278,14 +12456,136 @@ ImgOps | https://imgops.com/#b#`;
         });
     }
     var prefs;
-    var escapeHTMLPolicy;
-    if (unsafeWindow.trustedTypes && unsafeWindow.trustedTypes.createPolicy) {
-        escapeHTMLPolicy=unsafeWindow.trustedTypes.createPolicy('pvcep_default', {
-            createHTML: (string, sink) => string,
-            createScriptURL: string => string,
-            createScript: string => string
+
+    function parseTrustedTypes(cspString) {
+        const policies = new Set();
+        let allowDuplicates = false;
+        let ttDirectiveFound = false;
+        const ttRegex = /trusted-types\s+([^;]+)/gi;
+        let match;
+
+        while ((match = ttRegex.exec(cspString)) !== null) {
+            ttDirectiveFound = true;
+            match[1].trim().split(/\s+/)
+                .forEach(name => {
+                if (name === "'allow-duplicates'") {
+                    allowDuplicates = true;
+                } else if (name !== "'none'") {
+                    policies.add(name.replace(/'/g, ''));
+                }
+            });
+        }
+        return { names: policies, allowDuplicates: allowDuplicates, ttDirectiveFound: ttDirectiveFound };
+    }
+
+    async function getCspTrustedTypesInfo() {
+        const combinedPolicies = new Set();
+        let combinedAllowDuplicates = false;
+        let combinedTtDirectiveFound = false;
+
+        const meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+        if (meta) {
+            const metaResult = parseTrustedTypes(meta.content);
+            metaResult.names.forEach(name => combinedPolicies.add(name));
+            if (metaResult.allowDuplicates) {
+                combinedAllowDuplicates = true;
+            }
+            if (metaResult.ttDirectiveFound) {
+                combinedTtDirectiveFound = true;
+            }
+        }
+
+        return new Promise((resolve) => {
+            GM_xmlhttpRequest({
+                method: "HEAD",
+                url: window.location.href,
+                onload: function(response) {
+                    const cspHeader = response.responseHeaders.split('\r\n')
+                    .filter(h => h.toLowerCase().startsWith('content-security-policy:'))
+                    .map(h => h.substring(26).trim())
+                    .join('; ');
+
+                    const headerResult = parseTrustedTypes(cspHeader);
+                    headerResult.names.forEach(name => combinedPolicies.add(name));
+                    if (headerResult.allowDuplicates) {
+                        combinedAllowDuplicates = true;
+                    }
+                    if (headerResult.ttDirectiveFound) {
+                        combinedTtDirectiveFound = true;
+                    }
+
+                    resolve({
+                        names: combinedPolicies,
+                        allowDuplicates: combinedAllowDuplicates,
+                        ttDirectiveFound: combinedTtDirectiveFound
+                    });
+                },
+                onerror: function(error) {
+                    resolve({
+                        names: combinedPolicies,
+                        allowDuplicates: combinedAllowDuplicates,
+                        ttDirectiveFound: combinedTtDirectiveFound
+                    });
+                }
+            });
         });
     }
+
+    function isTrustedTypesEnforced() {
+        try {
+            document.createElement('div').innerHTML = '';
+            return false;
+        } catch (e) {
+            return true;
+        }
+    }
+
+    async function createPolicy() {
+        if (!(unsafeWindow.trustedTypes && unsafeWindow.trustedTypes.createPolicy && isTrustedTypesEnforced())) {
+            return;
+        }
+
+        const { names: allowedNames, allowDuplicates, ttDirectiveFound } = await getCspTrustedTypesInfo();
+
+        if (ttDirectiveFound && !allowDuplicates) {
+            debug("CSP Trusted Types is enforced without 'allow-duplicates'. " +
+                         "Skipping policy creation to avoid conflicts with the page.");
+            return;
+        }
+
+        const MY_POLICY_NAME = 'pvcep_default';
+
+        try {
+            escapeHTMLPolicy = unsafeWindow.trustedTypes.createPolicy(MY_POLICY_NAME, {
+                createHTML: (string, sink) => string,
+                createScriptURL: string => string,
+                createScript: string => string
+            });
+            return;
+        } catch (e) {
+        }
+
+        const existingPolicies = new Set(unsafeWindow.trustedTypes.getPolicyNames());
+        for (const name of allowedNames) {
+            if (name === '*' || existingPolicies.has(name)) {
+                continue;
+            }
+
+            try {
+                escapeHTMLPolicy = unsafeWindow.trustedTypes.createPolicy(name, {
+                    createHTML: (string, sink) => string,
+                    createScriptURL: string => string,
+                    createScript: string => string
+                });
+                return;
+            } catch (e) {
+                debug(`create '${name}' failed, trying next...`);
+            }
+        }
+        debug("Could not create any trusted types policy.");
+    }
+
+    let escapeHTMLPolicy = null;
 
     function getBody(doc){
         return doc.body || doc.querySelector('body') || doc;
@@ -12300,6 +12600,7 @@ ImgOps | https://imgops.com/#b#`;
         return escapeHTMLPolicy?escapeHTMLPolicy.createScript(html):html;
     }
     async function init(topObject,window,document,arrayFn,envir,storage,unsafeWindow){
+        await createPolicy();
         // 默认设置，请到设置界面修改
         prefs={
             floatBar:{//浮动工具栏相关设置.
@@ -12384,22 +12685,22 @@ ImgOps | https://imgops.com/#b#`;
                 sidebarToggle: true, // 是否显示隐藏按钮
                 transition:true,//大图片区的动画。
                 preload:true,//对附近的图片进行预读。
-                max:5,//最多预读多少张（前后各多少张）
+                max:3,//最多预读多少张（前后各多少张）
 
                 zoomresized: 25, // 图片尺寸最少相差比例，单位：%
                 scaleSmallSize: 250, // 图库的新类别，缩放的图片，尺寸的高或宽都小于该值
                 showSmallSize:true,//是否默认显示小尺寸图片
                 disableArrow:false,
 
-                scrollEndAndLoad: false, // 滚动主窗口到最底部，然后自动重载库的图片。还有bug，有待进一步测试
-                scrollEndAndLoad_num: 3, // 最后几张图片执行
+                scrollEndAndLoad: true, // 滚动主窗口到最底部，然后自动重载库的图片。
+                scrollEndAndLoad_num: 5, // 最后几张图片执行
 
                 autoZoom: false, // 如果有放大，则把图片及 sidebar 部分的缩放改回 100%，增大可视面积（仅在 chrome 下有效）
                 descriptionLength: 32, // 注释的最大宽度
                 editSite: "",
                 defaultSizeLimit:{
-                    w:160,
-                    h:160
+                    w:80,
+                    h:80
                 },
                 searchData:defaultSearchData,
                 downloadWithZip:true,
@@ -12456,8 +12757,8 @@ ImgOps | https://imgops.com/#b#`;
         };
 
         var matchedRule,
-            _URL=location.href.slice(0, 500);
-        const lazyImgAttr = ["data-lazy-src", "org_src", "data-lazy", "data-url", "data-orig-file", "zoomfile", "file", "original", "load-src", "imgsrc", "real_src", "src2", "origin-src", "data-lazyload", "data-lazyload-src", "data-lazy-load-src", "data-ks-lazyload", "data-ks-lazyload-custom", "data-src", "data-defer-src", "data-actualsrc", "data-cover", "data-original", "data-thumb", "data-imageurl", "data-placeholder", "lazysrc", "data-preview", "data-page-image-url"];
+            _URL=location.href.length > 510 ? location.href.slice(0, 500) + location.href.slice(-10) : location.href.slice(0, 500);
+        const lazyImgAttr = ["data-lazy-src", "org_src", "data-lazy", "data-url", "data-orig-file", "zoomfile", "file", "original", "load-src", "imgsrc", "real_src", "src2", "origin-src", "data-lazyload", "data-lazyload-src", "data-lazy-load-src", "data-ks-lazyload", "data-ks-lazyload-custom", "data-defer-src", "data-actualsrc", "data-original", "data-origin-src", "data-imageurl", "lazysrc", "data-src", "data-preview", "data-cover", "data-page-image-url", "data-thumb", "data-placeholder"];
         var tprules = [
             function(a) {
                 if (this.currentSrc && !this.src) this.src = this.currentSrc;
@@ -12484,7 +12785,7 @@ ImgOps | https://imgops.com/#b#`;
                 }
                 if (newsrc) {
                 } else if (this.srcset) {
-                    var srcs = this.srcset.split(/[xw],/i), largeSize = -1;
+                    var srcs = this.srcset.split(/[xw],\s*/i), largeSize = -1;
                     srcs.forEach(srci => {
                         let srcInfo = srci.trim().split(/\s+/), curSize = parseInt(srcInfo[1] || 0);
                         if ((srcInfo[1] || !oldsrc) && curSize > largeSize) {
@@ -12498,7 +12799,7 @@ ImgOps | https://imgops.com/#b#`;
             }
         ];
 
-        const imageReg = /^\s*(http|ftp).*\.(avi|avif|avifs|bmp|gif|gifv|ico|jfif|jpe|jpeg|jpg|jif|jfi|a?png|svgz?|webp|xbm|dib|divx|3gpp|m3u|m4v|mkv|mp4|mpe?g|ogv|webm|flv|flac|m4a|m4b|mpa|mp3|aac|cda|oga|ogg|opus|wma|wav)(&|\?|#|\/?$|\s)/i;
+        const imageReg = /^\s*(https?|ftp):\/\/.*?\/[^\.:：]*\.(avi|avif|avifs|bmp|gif|gifv|ico|jfif|jpe|jpeg|jpg|jif|jfi|a?png|svgz?|webp|xbm|dib|divx|3gpp|m3u|m4v|mkv|mp4|mpe?g|ogv|webm|flv|flac|m4a|m4b|mpa|mp3|aac|cda|oga|ogg|opus|wma|wav)(&|\?|#|\/?$|\s)/i;
 
         const ruleImportHost = ["greasyfork.org", "github.com", "reddit.com"];
         const ruleImportUrlReg = /greasyfork\.org\/.*scripts\/24204(\-[^\/]*)?(\/discussions|\/?$|\/feedback)|github\.com\/hoothin\/UserScripts\/(tree\/master\/Picviewer%20CE%2B|issues|discussions)|\.reddit\.com\/r\/PicviewerCE/i;
@@ -12754,20 +13055,38 @@ ImgOps | https://imgops.com/#b#`;
             unsafeWindow.URL.createObjectURL = createObjectURLProxy;
         }
 
-        function downloadImg(url, name, type, errCb) {
-            urlToBlob(url, (blob, ext) => {
-                if(blob){
+        function downloadImg(url, name, type, over) {
+            if(canvas && (/^data:/.test(url) || url.split("/")[2] == document.domain)){
+                urlToBlobWithFetch(url, (blob, ext)=>{
+                    if(!blob){
+                        _GM_download(url, name, type);
+                        over && over();
+                        return;
+                    }
                     try {
                         saveAs(blob, (prefs.saveNameAddTitle ? document.title.replace(/[\*\/:<>\?\\\|]/g, "") + " - " : "") + getRightSaveName(url, name, type, ext));
+                        over && over();
                     } catch(e) {
                         _GM_download(url, name, type);
-                        if (errCb) errCb();
+                        over && over();
                     }
-                }else{
-                    _GM_download(url, name, type);
-                    if (errCb) errCb();
-                }
-            });
+                });
+            } else {
+                urlToBlob(url, (blob, ext) => {
+                    if(blob){
+                        try {
+                            saveAs(blob, (prefs.saveNameAddTitle ? document.title.replace(/[\*\/:<>\?\\\|]/g, "") + " - " : "") + getRightSaveName(url, name, type, ext));
+                            over && over();
+                        } catch(e) {
+                            _GM_download(url, name, type);
+                            over && over();
+                        }
+                    }else{
+                        _GM_download(url, name, type);
+                        over && over();
+                    }
+                });
+            }
         }
 
         function getBlob(url) {
@@ -12918,10 +13237,10 @@ ImgOps | https://imgops.com/#b#`;
             var rect=target.getBoundingClientRect();
             var compStyle=unsafeWindow.getComputedStyle(target);
             var pFloat=parseFloat;
-            var top=rect.top + pFloat(compStyle.paddingTop) + pFloat(compStyle.borderTopWidth);
-            var right=rect.right - pFloat(compStyle.paddingRight) - pFloat(compStyle.borderRightWidth);
-            var bottom=rect.bottom - pFloat(compStyle.paddingBottom) - pFloat(compStyle.borderBottomWidth);
-            var left=rect.left + pFloat(compStyle.paddingLeft) + pFloat(compStyle.borderLeftWidth);
+            var top=rect.top + pFloat(compStyle.borderTopWidth);
+            var right=rect.right - pFloat(compStyle.borderRightWidth);
+            var bottom=rect.bottom - pFloat(compStyle.borderBottomWidth);
+            var left=rect.left + pFloat(compStyle.borderLeftWidth);
             return {
                 top:top,
                 right:right,
@@ -13256,6 +13575,7 @@ ImgOps | https://imgops.com/#b#`;
 
 
 
+            var errorList = {}, errorBlobList = {};
             var imgReady=function(img,opts){
 
                 if(/NodeList|HTMLCollection/.test(Object.prototype.toString.call(img))  || Array.isArray(img)){
@@ -13342,6 +13662,9 @@ ImgOps | https://imgops.com/#b#`;
                         }break;
                         case 'error':{
                             removeListener();
+                            iRReadyFn = iRReadyFn.filter(function(item) {
+                                return item !== readyHandler
+                            });
                             if(error){
                                 error.call(img,e);
                             };
@@ -13401,6 +13724,37 @@ ImgOps | https://imgops.com/#b#`;
 
                 function errorHandler(e){
                     if(aborted)return;
+
+                    if (!errorBlobList[img.src] && !/^blob:/.test(img.src)) {
+                        errorList[img.src]=true;
+                        _GM_xmlhttpRequest({
+                            method: 'GET',
+                            url: img.src,
+                            responseType: 'blob',
+                            onload: function(response) {
+                                const blobUrl = URL.createObjectURL(response.response);
+                                const releaseBlob = () => URL.revokeObjectURL(blobUrl);
+                                window.addEventListener('beforeunload', releaseBlob);
+
+                                let orgSrc = img.src;
+                                img.src = blobUrl;
+                                setTimeout(() => {
+                                    if (aborted) return;
+                                    if (typeof img.width == 'number' && img.width && img.height) {
+                                    } else {
+                                        errorBlobList[orgSrc] = true;
+                                    }
+                                }, 0);
+                            },
+                            onerror: function() {
+                                if (aborted) return;
+                                errorBlobList[orgSrc] = true;
+                                go('error',e);
+                            }
+                        });
+                        return;
+                    }
+
                     go('error',e);
                 };
 
@@ -13421,6 +13775,7 @@ ImgOps | https://imgops.com/#b#`;
                             });
                         },0);
                     }else{//这不是图片.opera会识别错误.
+                        errorList[img.src]=true;
                         setTimeout(function(){
                             if(aborted)return;
                             go('error',{
@@ -13451,6 +13806,12 @@ ImgOps | https://imgops.com/#b#`;
                         iRInterval=setInterval(checkReady,66);
                     };
                 };
+                if (errorList[img.src]) {
+                    go('error',{
+                        type:'error',
+                        target:img,
+                    });
+                }
 
                 return ret;
             };
@@ -14483,7 +14844,13 @@ ImgOps | https://imgops.com/#b#`;
                     self.switchThumbVisible();//切换图片类别显隐;
                 },true);
 
-                prefs.gallery.scrollEndAndLoad = !!storage.getListItem("scrollEndAndLoad", location.hostname);
+                let scrollEndAndLoad = storage.getListItem("scrollEndAndLoad", location.hostname);
+                if (scrollEndAndLoad === true) {
+                    prefs.gallery.scrollEndAndLoad = true;
+                } else if (scrollEndAndLoad === false) {
+                    prefs.gallery.scrollEndAndLoad = false;
+                }
+
                 eleMaps['head-command-drop-list-others'].querySelector('input[data-command="scrollToEndAndReload"]').checked = prefs.gallery.scrollEndAndLoad;
                 let srcSplit, downloading=false, saveParams;
                 async function getSaveParams() {
@@ -14495,7 +14862,7 @@ ImgOps | https://imgops.com/#b#`;
 
                             let xhr = dataset(node, 'xhr') !== 'stop' && self.getPropBySpanMark(node, "xhr");
                             if (xhr) {
-                                self.showTips("Sending request...");
+                                self.showTips("Sending request...", 3000);
                                 await new Promise(resolve => {
                                     setTimeout(() => {
                                         let xhrError = function() {
@@ -14533,7 +14900,7 @@ ImgOps | https://imgops.com/#b#`;
                             let picName = (saveIndex < 10 ? "00" + saveIndex : (saveIndex < 100 ? "0" + saveIndex : saveIndex)) + (title ? "-" + title : ""), hostArr = location.host.split(".");
                             let host = hostArr[hostArr.length-2];
                             saveParams.push([node.dataset.src, picName]);
-                            if (node.dataset.srcs) {
+                            if (node.dataset.srcs && node.dataset.srcs != node.dataset.src) {
                                 node.dataset.srcs.split(",").forEach(src => {
                                     saveParams.push([src, picName]);
                                 });
@@ -14566,7 +14933,7 @@ ImgOps | https://imgops.com/#b#`;
                                     media = document.createElement('audio');
                                     src = "audio:" + src;
                                 } else if (file.type.indexOf("video") === 0) {
-                                    media = document.createElement('video');
+                                    media = createVideo();
                                     src = "video:" + src;
                                 } else continue;
                                 media.title = file.name;
@@ -14746,7 +15113,7 @@ ImgOps | https://imgops.com/#b#`;
                                                 self.img.style.display = "";
                                             }
                                         });
-                                    },
+                                    }
                                 });
                             } else {
                                 let target = self.img;
@@ -15325,6 +15692,7 @@ ImgOps | https://imgops.com/#b#`;
                         saveIndex++;
 
                         if (conItem.dataset.xhr) {
+                            self.showTips("Sending request...", 3000);
                             await new Promise((resolve) => {
                                 let getxhroverHandler = e => {
                                     conItem.removeEventListener('getxhrover', getxhroverHandler);
@@ -15474,7 +15842,7 @@ ImgOps | https://imgops.com/#b#`;
                                         media = document.createElement('audio');
                                         src = "audio:" + src;
                                     } else if (file.type.indexOf("video") === 0) {
-                                        media = document.createElement('video');
+                                        media = createVideo();
                                         src = "video:" + src;
                                     } else continue;
                                     media.src = src;
@@ -15602,9 +15970,10 @@ ImgOps | https://imgops.com/#b#`;
                     var len = saveParams.length;
                     function downloadOne(imgSrc, imgName, over){
                         let crosHandler = imgSrc => {
-                            urlToBlob(imgSrc, blob=>{
+                            urlToBlob(imgSrc, (blob, ext)=>{
                                 if (blob && blob.size>58) {
                                     let fileName = imgName.replace(/\//g, "");
+                                    if (ext) fileName = fileName.replace(/\.\w+$/, "") + "." + ext;
                                     zip.file(fileName, blob);
                                 } else console.debug("error: "+imgSrc);
                                 downloaded++;
@@ -15622,26 +15991,26 @@ ImgOps | https://imgops.com/#b#`;
                             });
                         }
                         if(canvas && (/^data:/.test(imgSrc) || imgSrc.split("/")[2] == document.domain)){
-                            self.dataURLToCanvas(imgSrc, canvas=>{
-                                self.showTips("Downloading "+(downloaded+1)+"/"+len, 1000000);
-                                if(!canvas){
+                            urlToBlobWithFetch(imgSrc, (blob, ext)=>{
+                                if(!blob){
                                     crosHandler(imgSrc);
                                     return;
                                 }
-                                canvas.toBlob(blob=>{
-                                    zip.file(imgName.replace(/^data:.*/, "img").replace(/\//g,""), blob);
-                                    downloaded++;
-                                    over && over();
-                                    if(downloaded == len){
-                                        self.showTips(`Begin compress to ${packName}...`, 100000);
-                                        zip.generateAsync({type:"blob"}, meta=>{self.showCompressProgress(meta)}).then(function(content){
-                                            if (content) {
-                                                saveAs(content, packName);
-                                            }
-                                            callback();
-                                        })
-                                    }
-                                }, "image/png");
+                                self.showTips("Downloading "+(downloaded+1)+"/"+len, 1000000);
+                                let fileName = imgName.replace(/^data:.*/, "img").replace(/\//g,"");
+                                if (ext) fileName = fileName.replace(/\.\w+$/, "") + "." + ext;
+                                zip.file(fileName, blob);
+                                downloaded++;
+                                over && over();
+                                if(downloaded == len){
+                                    self.showTips(`Begin compress to ${packName}...`, 100000);
+                                    zip.generateAsync({type:"blob"}, meta=>{self.showCompressProgress(meta)}).then(function(content){
+                                        if (content) {
+                                            saveAs(content, packName);
+                                        }
+                                        callback();
+                                    })
+                                }
                             });
                         }else{
                             crosHandler(imgSrc);
@@ -15656,10 +16025,14 @@ ImgOps | https://imgops.com/#b#`;
                             }, prefs.gallery.downloadGap);
                         };
                         let threadNum = 10;
+                        if (prefs.gallery.downloadGap > 500) {
+                            threadNum = 1;
+                        } else if (prefs.gallery.downloadGap > 100) {
+                            threadNum = 5;
+                        }
                         let downIntv = setInterval(() => {
-                            if (threadNum-- === 0) {
+                            if (--threadNum === 0) {
                                 clearInterval(downIntv);
-                                return;
                             }
                             let saveParam = saveParams && saveParams.shift();
                             if (!saveParam) clearInterval(downIntv);
@@ -15672,9 +16045,15 @@ ImgOps | https://imgops.com/#b#`;
                     }
                     return;
                 }
-
-                let download5Times=function(){
-                    for(let i=0;i<5;i++){
+                let threadNum = 10;
+                if (prefs.gallery.downloadGap > 500) {
+                    threadNum = 1;
+                } else if (prefs.gallery.downloadGap > 100) {
+                    threadNum = 5;
+                }
+                let downloadMulTimes=function(){
+                    self.showTips("Downloading...", 3000);
+                    for(let i=0;i<threadNum;i++){
                         let saveParam=saveParams.shift();
                         if(saveParam){
                             downloadImg(saveParam[0], saveParam[1], prefs.saveName);
@@ -15685,11 +16064,11 @@ ImgOps | https://imgops.com/#b#`;
                     }
                     if(saveParams.length>0){
                         setTimeout(()=>{
-                            download5Times();
-                        },1000);
+                            downloadMulTimes();
+                        },prefs.gallery.downloadGap);
                     }
                 };
-                download5Times();
+                downloadMulTimes();
             },
             changeMinView:function(){
                 var sizeInputH=this.sizeInputH;
@@ -16041,23 +16420,56 @@ ImgOps | https://imgops.com/#b#`;
                         imgSpan.addEventListener('getxhr', getXhrHandler);
                     }
                     imgSpan.addEventListener("click", async function(e) {
+                        if (maximizeContainer.classList.contains("checked")) {
+                            imgSpan.querySelector("input").click();
+                            return;
+                        }
                         e.preventDefault();
                         self.selectViewmore(imgSpan, curNode.dataset.src);
                         let loadError = e => {
-                            let i = document.createElement("img");
-                            i.src = curNode.dataset.thumbSrc;
-                            curNode.dataset.src = curNode.dataset.thumbSrc;
-                            popupImgWin(i);
+                            if (/^blob:/.test(media.src)) {
+                                let i = document.createElement("img");
+                                i.src = curNode.dataset.thumbSrc;
+                                curNode.dataset.src = curNode.dataset.thumbSrc;
+                                popupImgWin(i);
+                            } else {
+                                _GM_xmlhttpRequest({
+                                    method: 'GET',
+                                    url: dataset(node, 'src'),
+                                    responseType: 'blob',
+                                    onload: function(response) {
+                                        const blobUrl = URL.createObjectURL(response.response);
+                                        let i = document.createElement("img");
+                                        i.src = blobUrl;
+                                        curNode.dataset.src = curNode.dataset.thumbSrc;
+                                        popupImgWin(i);
+                                        const releaseBlob = () => URL.revokeObjectURL(blobUrl);
+                                        window.addEventListener('beforeunload', releaseBlob);
+                                    },
+                                    onerror: function() {
+                                        let i = document.createElement("img");
+                                        i.src = curNode.dataset.thumbSrc;
+                                        curNode.dataset.src = curNode.dataset.thumbSrc;
+                                        popupImgWin(i);
+                                    }
+                                });
+                            }
                         };
-                        let loadImg = () => {
+                        let loadImg = async() => {
                             self.showTips("Loading image...");
 
                             let imgSrc = dataset(node, 'src');
                             let mode = matchedRule.getMode(imgSrc);
                             let media;
+                            let loaded = function() {
+                                media.play();
+                                self.showTips("");
+                                popupImgWin(this || media);
+                                media.removeEventListener('loadeddata', loaded);
+                            }
                             switch (mode) {
                                 case "video":
-                                    media = document.createElement('video');
+                                    media = createVideo();
                                     media.style.width = 0;
                                     media.style.height = 0;
                                     media.controls = true;
@@ -16066,7 +16478,15 @@ ImgOps | https://imgops.com/#b#`;
                                     media.volume = matchedRule.mute ? 0 : 1;
                                     imgSrc = imgSrc.replace(/^video:/, "");
                                     if (imgSrc.indexOf('.mkv') !== -1) media.type = 'video/mp4';
-                                    else if (imgSrc.indexOf('.m3u8') !== -1) media.type = 'application/vnd.apple.mpegurl';
+                                    else if (imgSrc.indexOf('.m3u8') !== -1) {
+                                        try {
+                                            loaded();
+                                            await initVideojs(media, imgSrc);
+                                            imgSrc = "";
+                                        } catch (error) {
+                                            console.error('Failed to load or initialize Video.js player:', error);
+                                        }
+                                    }
                                     break;
                                 case "audio":
                                     media = document.createElement('audio');
@@ -16079,15 +16499,11 @@ ImgOps | https://imgops.com/#b#`;
                                     break;
                             }
                             if (media) {
-                                media.src = imgSrc;
-                                let loaded = function() {
-                                    media.play();
-                                    self.showTips("");
-                                    popupImgWin(this);
-                                    media.removeEventListener('loadeddata', loaded);
+                                if (imgSrc) {
+                                    media.src = imgSrc;
+                                    media.addEventListener('loadeddata', loaded);
+                                    media.load();
                                 }
-                                media.addEventListener('loadeddata', loaded);
-                                media.load();
                             } else {
                                 imgReady(imgSrc, {
                                     ready: function() {
@@ -16103,7 +16519,7 @@ ImgOps | https://imgops.com/#b#`;
                         };
                         let xhr = dataset(node, 'xhr') !== 'stop' && self.getPropBySpanMark(node, "xhr");
                         if (xhr) {
-                            self.showTips("Sending request...");
+                            self.showTips("Sending request...", 3000);
                             let imgSrc = await getXhr();
                             if (imgSrc) {
                                 loadImg();
@@ -16189,29 +16605,6 @@ ImgOps | https://imgops.com/#b#`;
                     this.bricksInstance.pack();
                     this.bricksInstance.resize(true);
                 }
-            },
-            dataURLToCanvas:function (dataurl, cb){
-                if(!dataurl)return cb(null);
-                var ctx = canvas.getContext('2d');
-                var img = new Image();
-                img.setAttribute("crossOrigin","anonymous");
-                img.onload = function(){
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0);
-                    cb(canvas);
-                };
-                img.onerror = function(){
-                    cb(null);
-                };
-                img.src = dataurl;
-            },
-            blobToCanvas: function (blob, cb){
-                var self=this;
-                blobToDataURL(blob, function (dataurl){
-                    self.dataURLToCanvas(dataurl, cb);
-                });
             },
             showHideBottom: function() {  // 显示隐藏 sidebar-container
                 var sidebarContainer = this.eleMaps['sidebar-container'],
@@ -16387,7 +16780,7 @@ ImgOps | https://imgops.com/#b#`;
                     thumbScrollbar.scroll(needScrollDis - scrollCenter,false,!noTransition);
                 }, 0);
             },
-            getImg:function(ele){
+            getImg:async function(ele){
                 var self = this;
 
                 var src = dataset(ele,'src');
@@ -16465,8 +16858,21 @@ ImgOps | https://imgops.com/#b#`;
 
                 if (!src) return;
                 let media, mediaSrc = src;
+                let loaded = function() {
+                    var index = allLoading.indexOf(src);
+                    if (index != -1) {
+                        allLoading.splice(index,1);
+                    }
+
+                    if (src != self.lastLoading) return;
+
+                    if (loadingIndicator && loadingIndicator.style) loadingIndicator.style.display = '';
+                    if (preImgR) preImgR.abort();
+                    self.loadImg(media, ele);
+                    media.removeEventListener('loadeddata', loaded);
+                }
                 if (isVideoLink(src)) {
-                    media = document.createElement('video');
+                    media = createVideo();
                     media.style.width = 0;
                     media.style.height = 0;
                     media.controls = true;
@@ -16475,7 +16881,25 @@ ImgOps | https://imgops.com/#b#`;
                     media.volume = matchedRule.mute ? 0 : 1;
                     mediaSrc = mediaSrc.replace(/^video:/, "");
                     if (src.indexOf('.mkv') !== -1) media.type = 'video/mp4';
-                    else if (src.indexOf('.m3u8') !== -1) media.type = 'application/vnd.apple.mpegurl';
+                    else if (src.indexOf('.m3u8') !== -1) {
+                        try {
+                            loaded();
+                            await initVideojs(media, mediaSrc);
+                            media.onload = e => {
+                                self.imgNaturalSize = {
+                                    h:media.naturalHeight || 100,
+                                    w:media.naturalWidth || 100,
+                                };
+                                self.fitToScreen({
+                                    x:0,
+                                    y:0,
+                                });
+                            };
+                            mediaSrc = "";
+                        } catch (error) {
+                            console.error('Failed to load or initialize Video.js player:', error);
+                        }
+                    }
                 } else if (isAudioLink(src)) {
                     media = document.createElement('audio');
                     media.controls = true;
@@ -16487,22 +16911,12 @@ ImgOps | https://imgops.com/#b#`;
                     if (this.eleMaps['sidebar-toggle'].style.visibility == 'hidden') {
                         media.autoplay = false;
                     }
-                    media.src = mediaSrc;
-                    let loaded = function() {
-                        var index = allLoading.indexOf(src);
-                        if (index != -1) {
-                            allLoading.splice(index,1);
-                        }
-
-                        if (src != self.lastLoading) return;
-
-                        if (loadingIndicator && loadingIndicator.style) loadingIndicator.style.display = '';
-                        if (preImgR) preImgR.abort();
-                        self.loadImg(media, ele);
-                        media.removeEventListener('loadeddata', loaded);
+                    if (mediaSrc) {
+                        media.src = mediaSrc;
+                        curLoadingMedia = media;
+                        media.addEventListener('loadeddata', loaded);
+                        media.load();
                     }
-                    media.addEventListener('loadeddata', loaded);
-                    media.load();
                     return;
                 }
                 this.imgReady=imgReady(src, {
@@ -16527,12 +16941,13 @@ ImgOps | https://imgops.com/#b#`;
                         };
 
                         if(src!=self.lastLoading)return;
+                        let img = this;
 
                         if(e.type=='error'){
                             if (loadingIndicator && loadingIndicator.style) loadingIndicator.style.display='';
                             self.errorSpan=ele;
                             if(preImgR)preImgR.abort();
-                            self.loadImg(this, ele,true);
+                            self.loadImg(img, ele,true);
                         };
 
                         self.slideShow.run('loadEnd');
@@ -16553,6 +16968,9 @@ ImgOps | https://imgops.com/#b#`;
 
             },
             loadImg:function(img,relatedThumb,error){
+                [].forEach.call(this.eleMaps['img-parent'].querySelectorAll("[id^=vjs_video]"), video => {
+                    video.parentNode.removeChild(video);
+                });
                 if(!/^(img|video|audio)$/i.test(img.nodeName)){//先读取。
                     this.getImg(img);
                     return;
@@ -16565,13 +16983,13 @@ ImgOps | https://imgops.com/#b#`;
                 var imgNaturalSize;
                 if (/^video$/i.test(img.nodeName)) {
                     imgNaturalSize = {
-                        h:img.videoHeight || 200,
-                        w:img.videoWidth || 200,
+                        h:img.videoHeight || 1080,
+                        w:img.videoWidth || 1920,
                     };
                 } else if (/^audio$/i.test(img.nodeName)) {
                     imgNaturalSize = {
-                        h:80,
-                        w:300,
+                        h:50,
+                        w:350,
                     };
                 } else {
                     imgNaturalSize={
@@ -16715,6 +17133,7 @@ ImgOps | https://imgops.com/#b#`;
                 var imgPaSty=img.parentNode.style;
                 imgPaSty.width='';
                 imgPaSty.height='';
+                imgPaSty=this.eleMaps['img-parent'].style;
 
                 let rotate90 = this.galleryRotate == 90 || this.galleryRotate == 270;
                 let imgNaturalSize = rotate90 ? {w: this.imgNaturalSize.h, h: this.imgNaturalSize.w} : this.imgNaturalSize;
@@ -16757,8 +17176,8 @@ ImgOps | https://imgops.com/#b#`;
                                 imgSty.width=width + 'px';
                                 imgSty.setProperty('width', width+'px', 'important');
                             }
-                            imgSty.width=width + 'px';
-                            imgSty.setProperty('width', width+'px', 'important');
+                            imgPaSty.width=width + 'px';
+                            imgPaSty.setProperty('width', width+'px', 'important');
                             scaled=width/imgNaturalSize.w;
                         };
                         scaled=(scaled*100).toFixed(2) + '%';
@@ -16766,12 +17185,28 @@ ImgOps | https://imgops.com/#b#`;
                         if(imgNaturalSize.h/imgNaturalSize.w >= containerSize.h/containerSize.w){
                             let height=contentSSize.h-10;
                             height=height<0?contentSSize.h:height;
-                            imgSty.height=height + 'px';
+                            if (rotate90) {
+                                imgSty.width=height + 'px';
+                                imgSty.setProperty('width', height+'px', 'important');
+                            } else {
+                                imgSty.height=height + 'px';
+                                imgSty.setProperty('height', height+'px', 'important');
+                            }
+                            imgPaSty.height=height + 'px';
+                            imgPaSty.setProperty('height', height+'px', 'important');
                             scaled=height/imgNaturalSize.h;
                         }else{
                             let width=contentSSize.w-10;
                             width=width<0?contentSSize.w:width;
-                            imgSty.width=width + 'px';
+                            if (rotate90) {
+                                imgSty.height=width + 'px';
+                                imgSty.setProperty('height', width+'px', 'important');
+                            } else {
+                                imgSty.width=width + 'px';
+                                imgSty.setProperty('width', width+'px', 'important');
+                            }
+                            imgPaSty.width=width + 'px';
+                            imgPaSty.setProperty('width', width+'px', 'important');
                             scaled=width/imgNaturalSize.w;
                         };
                         scaled=(scaled*100).toFixed(2) + '%';
@@ -16953,7 +17388,7 @@ ImgOps | https://imgops.com/#b#`;
                             //if(item.xhr)spanMark.dataset.xhr=encodeURIComponent(JSON.stringify(item.xhr));
                             spanMark.dataset.description=encodeURIComponent(item.description || (item.img ? (item.img.title || item.img.alt || "") : ""));
                             spanMark.dataset.thumbSrc=(item.img && (item.img.currentSrc || item.img.src)) || item.imgSrc;
-                            let title = item.img ? (item.img.title || item.img.alt || "").slice(-80) : "";
+                            let title = item.img ? (item.img.title || item.img.alt || "").slice(-200) : "";
                             if (title) {
                                 if (title.indexOf('http') === 0 || title.indexOf('data') === 0) title = '';
                                 else title += '\n';
@@ -17804,13 +18239,13 @@ ImgOps | https://imgops.com/#b#`;
                 }
             },
             getAllValidImgs:async function(newer, checkListenBg){
-                var validImgs = [];
-                var container = document.querySelector('.pv-gallery-container'),
+                let validImgs = [];
+                let container = document.querySelector('.pv-gallery-container'),
                     preloadContainer = document.querySelector('.pv-gallery-preloaded-img-container');
 
-                var bgReg = /.*?url\(\s*["']?(.+?)["']?\s*\)([^'"]|$)/i;
-                var body = getBody(document);
-                var linkMedias = [];
+                let bgReg = /^\s*url\(\s*["']?([^ad\s'"#].+?)["']?\s*\)([^'"]|$)/i;
+                let body = getBody(document);
+                let linkMedias = [];
                 function anylizeEle(total, node) {
                     if (/^iframe$/i.test(node.nodeName)) {
                         if (node.name == "pagetual-iframe") return total;
@@ -17863,7 +18298,7 @@ ImgOps | https://imgops.com/#b#`;
                             total.push(node);
                         }
                     } else if (/^a$/i.test(node.nodeName)) {
-                        if (imageReg.test(node.href)) {
+                        if (node.href && node.href.length < 300 && imageReg.test(node.href)) {
                             let src = node.href;
                             if (/[&\?]url\=/.test(src)) {
                                 src = src.replace(/.*[&\?]url\=(.*?)(&.*|$)/, "$1");
@@ -18062,7 +18497,7 @@ ImgOps | https://imgops.com/#b#`;
                 if (this.isScrollToEndAndReloading) return;
                 this.isScrollToEndAndReloading = true;
                 var scrollTarget;
-                if (document.documentElement.scrollTop) {
+                if (document.documentElement.scrollTop || document.documentElement.scrollHeight - document.documentElement.clientHeight > 100) {
                     scrollTarget = document.documentElement;
                 } else if (getBody(document).scrollTop) {
                     scrollTarget = getBody(document);
@@ -18075,7 +18510,7 @@ ImgOps | https://imgops.com/#b#`;
                         }
                     }
                     if (tempEle) {
-                        while (tempEle && (tempEle.scrollHeight === tempEle.clientHeight || unsafeWindow.getComputedStyle(tempEle).overflowY === "hidden")) {
+                        while (tempEle && (tempEle.scrollHeight - tempEle.clientHeight < 10 || unsafeWindow.getComputedStyle(tempEle).overflowY === "hidden")) {
                             tempEle = tempEle.parentNode;
                         }
                     }
@@ -18083,28 +18518,30 @@ ImgOps | https://imgops.com/#b#`;
                 }
                 scrollTarget = scrollTarget || document.documentElement;
                 var self = this;
-                setTimeout(() => {
-                    self.isScrollToEndAndReloading = false;
-                    var des = document.documentElement.style;
-                    des.overflow = '';
-                    document.head.appendChild(self.hideScrollStyle);
-                    let scrollIntv = setInterval(function() {
-                        let scrollTop = scrollTarget.scrollTop;
-                        scrollTarget.scrollTop += 500;
-                        if (scrollTop === scrollTarget.scrollTop) {
-                            clearInterval(scrollIntv);
-                            setTimeout(() => {
-                                des.overflow = 'hidden';
-                                document.head.removeChild(self.hideScrollStyle);
-                            }, 0);
-                            clearTimeout(self.reloadTimeout);
-                            self.reloadTimeout = setTimeout(function() {
-                                self.reloadNew();
-                                self.loadThumb();
-                            }, 1000);
-                        }
-                    }, 1);
-                }, 300);
+                var des = document.documentElement.style;
+                des.overflow = '';
+                document.head.appendChild(self.hideScrollStyle);
+                let scrollIntv = setInterval(function() {
+                    let scrollTop = scrollTarget.scrollTop;
+                    scrollTarget.scrollTop += 800;
+                    if (scrollTop === scrollTarget.scrollTop) {
+                        clearInterval(scrollIntv);
+                        self.isScrollToEndAndReloading = false;
+                        setTimeout(() => {
+                            des.overflow = 'hidden';
+                            document.head.removeChild(self.hideScrollStyle);
+                        }, 0);
+                        if (self.lastScrollTop == scrollTop) return;
+                        clearTimeout(self.reloadTimeout);
+                        self.reloadTimeout = setTimeout(function() {
+                            self.reloadNew();
+                            self.loadThumb();
+                            self.lastScrollTop = scrollTop;
+                        }, 300);
+                    } else {
+                        self.reloadNew();
+                    }
+                }, 150);
             },
             exportImages: function () {// 导出所有图片到新窗口
                 var nodes = this.eleMaps['sidebar-thumbnails-container'].querySelectorAll('.pv-gallery-sidebar-thumb-container[data-src]:not(.ignore)'),i;
@@ -18851,6 +19288,9 @@ ImgOps | https://imgops.com/#b#`;
                     justify-content: center;\
                     line-height:0;\
                     }\
+                    .pv-gallery-img-parent video, .pv-gallery-img-parent>div{\
+                    background-size: cover;\
+                    }\
                     .pv-gallery-img_broken{\
                     display:none;\
                     cursor:pointer;\
@@ -18950,7 +19390,7 @@ ImgOps | https://imgops.com/#b#`;
                     border-top: 0px solid transparent;\
                     }\
                     .pv-gallery-container.pv-gallery-sidebar-toggle-hide>.pv-gallery-head{\
-                    opacity: 0.1;\
+                    opacity: 0;\
                     transition: opacity .3s ease;\
                     }\
                     .pv-gallery-container.pv-gallery-sidebar-toggle-hide>.pv-gallery-body>.pv-gallery-img-container{\
@@ -19070,7 +19510,7 @@ ImgOps | https://imgops.com/#b#`;
                     transition: transform .3s ease 0s;\
                     transform: scale3d(1, 1, 1);\
                     cursor: zoom-in;\
-                    min-height: 88px;\
+                    min-height: 150px;\
                     border-radius: 20px;\
                     }\
                     .pv-gallery-maximize-container>.maximizeChild:hover img {\
@@ -19147,6 +19587,19 @@ ImgOps | https://imgops.com/#b#`;
                     }\
                     .pv-gallery-maximize-container.checked span>.pv-top-banner{\
                     opacity: 0.6;\
+                    }\
+                    .pv-gallery-maximize-container.checked span>img{\
+                    cursor: pointer;\
+                    }\
+                    .pv-gallery-maximize-container+p>input{\
+                    width:min-content;\
+                    border: 1px solid transparent;\
+                    border-bottom-color: #a3a3a3;\
+                    }\
+                    .pv-gallery-maximize-container+p>input:hover{\
+                    border-color: white;\
+                    background: #333;\
+                    color: white;\
                     }\
                     .pv-gallery-maximize-container+p>input.compareBtn{\
                     display: none;\
@@ -19548,6 +20001,9 @@ ImgOps | https://imgops.com/#b#`;
                     GalleryC.prototype.Preload.prototype.container=div;
                 };
                 this.max=prefs.gallery.max;
+                if (prefs.gallery.downloadGap > 500) {
+                    this.max = 0;
+                }
                 this.nextNumber=0;
                 this.nextEle=this.ele;
                 this.preNumber=0;
@@ -20266,6 +20722,7 @@ ImgOps | https://imgops.com/#b#`;
 
                 let imgbox=container.firstChild;
                 imgbox.appendChild(img);
+                this.imgbox = imgbox;
 
                 this.imgWindow=container;
 
@@ -20372,7 +20829,7 @@ ImgOps | https://imgops.com/#b#`;
                 this.curIndex = -1;
                 if (this.data && this.data.all && this.data.all.length > 1) {
                     for (let i = 0; i < this.data.all.length; i++) {
-                        if (this.data.all[i].replace(/^(video|audio):/, "") == this.data.src) {
+                        if (this.data.src.indexOf(this.data.all[i].replace(/^(video|audio):/, "")) !== -1) {
                             this.curIndex = i;
                             break;
                         }
@@ -20398,7 +20855,12 @@ ImgOps | https://imgops.com/#b#`;
                         if (!self.zoomed) {
                             if (!self.imgWindow.classList.contains("pv-pic-window-scroll")) {
                                 self.zoomLevel=0;
-                                self.zoom(1);
+                                if (img.naturalHeight && img.naturalHeight < 100) {
+                                    let zoomLevel = 100 / img.naturalHeight;
+                                    self.zoom(zoomLevel);
+                                } else {
+                                    self.zoom(1);
+                                }
                             }
                             if (self == uniqueImgWin) {
                                 self.initMaxSize();
@@ -20425,8 +20887,13 @@ ImgOps | https://imgops.com/#b#`;
                     setSearchState(`<strong>${img.naturalWidth} x ${img.naturalHeight}</strong>`, self.imgState);
                 }
                 if (!this.isImg) {
-                    img.naturalHeight = img.videoHeight || 80;
-                    img.naturalWidth = img.videoWidth || 300;
+                    if (/^video$/i.test(img.nodeName)) {
+                        img.naturalHeight = img.videoHeight || 1080;
+                        img.naturalWidth = img.videoWidth || 1920;
+                    } else if (/^audio$/i.test(img.nodeName)) {
+                        img.naturalHeight = 50;
+                        img.naturalWidth = 350;
+                    }
                     setTimeout(() => {
                         img.onload();
                     }, 0);
@@ -20447,8 +20914,15 @@ ImgOps | https://imgops.com/#b#`;
                 */
                 if (this.data) {
                     var descriptionSpan = container.querySelector('.pv-pic-window-description');
-                    let desc = (this.data.description || '').trim();
-                    descriptionSpan.textContent = desc;
+                    let desc = (this.data.description || '');
+                    if (Array.isArray(this.data.description) && Array.isArray(this.data.all)) {
+                        let curIndex;
+                        for (curIndex = 0; curIndex < this.data.all.length; curIndex++) {
+                            if (this.data.src.indexOf(this.data.all[curIndex].replace(/^(video|audio):/, "")) !== -1) break;
+                        }
+                        desc = desc[curIndex] || desc[0] || "";
+                    }
+                    descriptionSpan.textContent = desc.trim();
                     this.imgStateBox.title = desc;
                     descriptionSpan.style.display = desc ? "inline" : "none";
                     this.descriptionSpan = descriptionSpan;
@@ -20786,7 +21260,7 @@ ImgOps | https://imgops.com/#b#`;
                     let imgData = this.data;
                     let curIndex;
                     for (curIndex = 0; curIndex < this.data.all.length; curIndex++) {
-                        if (this.data.all[curIndex].replace(/^(video|audio):/, "") == this.data.src) break;
+                        if (this.data.src.indexOf(this.data.all[curIndex].replace(/^(video|audio):/, "")) !== -1) break;
                     }
                     if (fw) {
                         curIndex++;
@@ -21105,7 +21579,7 @@ ImgOps | https://imgops.com/#b#`;
                     margin: 0 -5px 0 15px!important;\
                     padding: 3px!important;\
                     color: black;\
-                    text-shadow: 0 0 0px black;\
+                    text-shadow: 0 0 1px #00000099;\
                     }\
                     .pv-pic-window-description::before {\
                     display: inline-block;\
@@ -21201,10 +21675,11 @@ ImgOps | https://imgops.com/#b#`;
                     -webkit-box-sizing: content-box;\
                     box-sizing: content-box;\
                     border-radius: 1px;\
-                    background: rgb(0 0 0 / 80%);\
+                    background: rgb(0 0 0 / 75%);\
+                    box-shadow: rgb(221, 221, 221) 0px 0px 1px inset;\
                     max-width: 100%;\
                     overflow: hidden;\
-                    font: 13px / 1.4em "Trebuchet MS", sans-serif;\
+                    font: 13px / 1.4em Roboto,arial,sans-serif,微软雅黑,"Noto Sans SC";\
                     pointer-events: none;\
                     }\
                     .pv-pic-search-state>span {\
@@ -21221,7 +21696,7 @@ ImgOps | https://imgops.com/#b#`;
                     }\
                     .pv-pic-search-state>span>strong {\
                     background: inherit;\
-                    color: inherit;\
+                    color: #ffffff;\
                     }\
                     span.pv-pic-search-state>.pv-icon {\
                     width: 20px;\
@@ -21308,8 +21783,8 @@ ImgOps | https://imgops.com/#b#`;
                     min-width:unset;\
                     max-height:unset;\
                     min-height:unset;\
-                    width:inherit;\
-                    height:inherit;\
+                    width:inherit!important;\
+                    height:inherit!important;\
                     padding:0;\
                     margin:0;\
                     border:none;\
@@ -21664,7 +22139,9 @@ ImgOps | https://imgops.com/#b#`;
                 if (!imme && this.following) return;
                 let wSize = getWindowSize();
 
-                let padding1 = Math.min(250, wSize.h>>2, wSize.w>>2), padding2 = 50, left, top;//内外侧间距
+                let paddingW = Math.min(250, wSize.w>>2, Math.max(this.data.img && this.data.img.clientWidth, 50)>>1);
+                let paddingH = Math.min(250, wSize.h>>2, Math.max(this.data.img && this.data.img.clientHeight, 50)>>1);
+                let padding2 = 50, left, top;//内外侧间距
                 imgWindow.style.position = "fixed";
                 let scrolled = {x: 0, y: 0};
 
@@ -21674,18 +22151,18 @@ ImgOps | https://imgops.com/#b#`;
                     //宽条，上下半屏
                     if (posY > wSize.h / 2) {
                         //上
-                        top = posY - imgWindow.offsetHeight - padding1 + scrolled.y;
+                        top = posY - imgWindow.offsetHeight - paddingH + scrolled.y;
                         if (top < padding2>>1) top = padding2>>1;
                     } else {
                         //下
-                        top = posY + padding1 + scrolled.y;
+                        top = posY + paddingH + scrolled.y;
                         if (top > wSize.h - imgWindow.offsetHeight - 1) top = wSize.h - imgWindow.offsetHeight - 1;
                     }
                     left = (wSize.w - imgWindow.offsetWidth) / 2;
-                    let maxLeft = posX + padding1;
+                    let maxLeft = posX + paddingW;
                     if (left > maxLeft) left = maxLeft;
                     else {
-                        let minLeft = posX - imgWindow.offsetWidth - padding1;
+                        let minLeft = posX - imgWindow.offsetWidth - paddingW;
                         if (left < minLeft) left = minLeft;
                     }
                     left = left + scrolled.x;
@@ -21693,18 +22170,18 @@ ImgOps | https://imgops.com/#b#`;
                     //窄条，左右半屏
                     if (posX > wSize.w / 2) {
                         //左
-                        left = posX - imgWindow.offsetWidth - padding1 + scrolled.x;
+                        left = posX - imgWindow.offsetWidth - paddingW + scrolled.x;
                         if (left < 1) left = 1;
                     } else {
                         //右
-                        left = posX + padding1 + scrolled.x;
+                        left = posX + paddingW + scrolled.x;
                         if (left > wSize.w - imgWindow.offsetWidth - 1) left = wSize.w - imgWindow.offsetWidth - 1;
                     }
                     top = (wSize.h - imgWindow.offsetHeight) / 2;
-                    let maxTop = posY + padding1;
+                    let maxTop = posY + paddingH;
                     if (top > maxTop) top = maxTop;
                     else {
-                        let minTop = posY - imgWindow.offsetHeight - padding1;
+                        let minTop = posY - imgWindow.offsetHeight - paddingH;
                         if (top < minTop) top = minTop;
                     }
                     top = top + scrolled.y;
@@ -21780,12 +22257,10 @@ ImgOps | https://imgops.com/#b#`;
 
                 let size = rectSize, containsScroll = imgWindow.classList.contains("pv-pic-window-scroll");
                 if (rectSize.w > wSize.w) {
-                    if (rectSize.w / rectSize.h > wSize.w / wSize.h) {
-                        size = {
-                            w: wSize.w,
-                            h: wSize.w / (rectSize.w / rectSize.h),
-                        };
-                    }
+                    size = {
+                        w: wSize.w,
+                        h: wSize.w / (rectSize.w / rectSize.h),
+                    };
 
                     let cs = this.getRotatedImgCliSize(size);
                     let ns = this.imgNaturalSize;
@@ -22039,8 +22514,8 @@ ImgOps | https://imgops.com/#b#`;
                     };
                     img.width=afterImgSize.w;
                     img.height=afterImgSize.h;
-                    img.parentNode.style.width=afterImgSize.w + 'px';
-                    img.parentNode.style.height=afterImgSize.h + 'px';
+                    self.imgbox.style.width=afterImgSize.w + 'px';
+                    self.imgbox.style.height=afterImgSize.h + 'px';
                     if (afterImgSize.w < 60) {
                         self.imgState.style.display = "none";
                     } else {
@@ -22374,7 +22849,7 @@ ImgOps | https://imgops.com/#b#`;
             },
             focusedKeyup:function(e){
                 var keyCode=e.keyCode;
-                var valid=[27,32,18,16,72,17,72,82,90,67,37,39];
+                var valid=[27,32,18,16,72,17,72,82,90,67,37,38,39,40];
                 if(valid.indexOf(keyCode)==-1)return;
 
                 if (window.getSelection().toString()) return;
@@ -22433,11 +22908,11 @@ ImgOps | https://imgops.com/#b#`;
                     case 90://z键
                         this.zKeyUp=true;
                         break;
-                    case 39:
-                        this.switchImage(true);
-                        break;
                     case 37:
                         this.switchImage(false);
+                        break;
+                    case 39:
+                        this.switchImage(true);
                         break;
                     case 27:
                         if (prefs.imgWindow.close.escKey) {
@@ -22479,7 +22954,7 @@ ImgOps | https://imgops.com/#b#`;
                     e.stopPropagation();
                     return;
                 }
-                var valid=[32,82,72,90,18,16,17,27,67];//有效的按键
+                var valid=[32,82,72,90,18,16,17,27,67,38,40];//有效的按键
                 if(valid.indexOf(keyCode)==-1) return;
 
                 e.preventDefault();
@@ -22566,6 +23041,12 @@ ImgOps | https://imgops.com/#b#`;
                         clearTimeout(this.ctrlkeyDownTimer);
                     }break;
                     case 27:{//ese关闭窗口
+                    }break;
+                    case 38:{//上
+                        this.imgbox.scrollTop -= 200;
+                    }break;
+                    case 40:{//下
+                        this.imgbox.scrollTop += 200;
                     }break;
                     default:break;
                 }
@@ -23100,6 +23581,7 @@ ImgOps | https://imgops.com/#b#`;
             },
             remove:function(){
                 if(!this.removed){
+                    lastPopupLoading = null;
                     this.removed=true;
                     this.loadingAnim.parentNode.removeChild(this.loadingAnim);
                     LoadingAnimC.all.splice(LoadingAnimC.all.indexOf(this),1);
@@ -23121,6 +23603,7 @@ ImgOps | https://imgops.com/#b#`;
                 },3000);
             },
             setPosition:function(){
+                if (!this.data.img) return;
                 var position=getContentClientRect(this.data.img);
                 var cs=this.loadingAnim.style;
                 var scrolled=getScrolled();
@@ -23130,11 +23613,16 @@ ImgOps | https://imgops.com/#b#`;
             },
 
             // 根据 imgSrc 载入图片，imgSrcs 为备用图片地址，imgSrc 加载失败备用
-            loadImg: function(imgSrc, imgSrcs, nextFun) {
+            loadImg: async function(imgSrc, imgSrcs, nextFun) {
                 var self = this;
 
                 var mode = matchedRule.getMode(imgSrc);
                 var media;
+                let loaded = function() {
+                    media.play();
+                    self.load(this || media);
+                    media.removeEventListener('loadeddata', loaded);
+                }
                 if (this.buttonType === 'magnifier') {
                     media = document.createElement('img');
                     media.src = (mode === "video" || mode === "audio") ? this.data.imgSrc : imgSrc;
@@ -23142,7 +23630,7 @@ ImgOps | https://imgops.com/#b#`;
                 } else {
                     switch (mode) {
                         case "video":
-                            media = document.createElement('video');
+                            media = createVideo();
                             media.style.width = 0;
                             media.style.height = 0;
                             media.controls = true;
@@ -23151,7 +23639,15 @@ ImgOps | https://imgops.com/#b#`;
                             media.volume = matchedRule.mute ? 0 : 1;
                             imgSrc = imgSrc.replace(/^video:/, "");
                             if (imgSrc.indexOf('.mkv') !== -1) media.type = 'video/mp4';
-                            else if (imgSrc.indexOf('.m3u8') !== -1) media.type = 'application/vnd.apple.mpegurl';
+                            else if (imgSrc.indexOf('.m3u8') !== -1) {
+                                try {
+                                    loaded();
+                                    await initVideojs(media, imgSrc);
+                                    imgSrc = "";
+                                } catch (error) {
+                                    console.error('Failed to load or initialize Video.js player:', error);
+                                }
+                            }
                             break;
                         case "audio":
                             media = document.createElement('audio');
@@ -23164,7 +23660,8 @@ ImgOps | https://imgops.com/#b#`;
                             media = document.createElement('img');
                             break;
                     }
-                    media.src = imgSrc;
+                    if (imgSrc) media.src = imgSrc;
+                    curLoadingMedia = media;
                 }
 
                 var opts = {
@@ -23175,10 +23672,10 @@ ImgOps | https://imgops.com/#b#`;
                                 self.loadImg(src, imgSrcs, nextFun);
                                 return;
                             }
+                        } else {
+                            if(nextFun) nextFun();
+                            else self.error('', this, e);
                         }
-
-                        if(nextFun) nextFun();
-                        else self.error('', this, e);
                     },
                 };
 
@@ -23187,19 +23684,17 @@ ImgOps | https://imgops.com/#b#`;
                 };
 
                 if (mode === 'video' || mode === 'audio') {
-                    let loaded = function() {
-                        media.play();
-                        self.load(this);
-                        media.removeEventListener('loadeddata', loaded);
+                    if (imgSrc) {
+                        media.addEventListener('loadeddata', loaded);
+                        media.load();
                     }
-                    media.addEventListener('loadeddata', loaded);
-                    media.load();
                 } else {
                     self.imgReady = imgReady(media, opts);
                 }
             },
 
             load:async function(img,e){
+                lastPopupLoading = null;
                 this.remove();
                 this.img=img;
                 var buttonType=this.buttonType;
@@ -23215,7 +23710,7 @@ ImgOps | https://imgops.com/#b#`;
                 };
 
                 var self=this;
-                function openInTop(){
+                async function openInTop(){
                     var data=self.data;
 
                     //删除不能发送的项。
@@ -23236,6 +23731,15 @@ ImgOps | https://imgops.com/#b#`;
                         delCantClone(data);
                     };
 
+                    if(!gallery){
+                        gallery=new GalleryC();
+                        gallery.data=[];
+                    }
+                    let allData=(await gallery.getAllValidImgs()).map(item => item.src);
+                    allData = allData.filter((item, index) => {
+                        return allData.indexOf(item) === index;
+                    });
+                    data.all = allData;
                     window.postMessage({
                         messageID:messageID,
                         src:img.src,
@@ -23664,17 +24168,17 @@ ImgOps | https://imgops.com/#b#`;
                 let offsetParent, bodyPosi;
 
                 if (bodyStyle.position === "static") {
-                    if (document.documentElement.scrollLeft || document.documentElement.scrollTop) {
-                        offsetParent = document.documentElement;
-                    } else {
-                        offsetParent = body;
+                    offsetParent = document.documentElement;
+                    bodyPosi = body.getBoundingClientRect();
+                    let docPosy = offsetParent.getBoundingClientRect();
+                    if (bodyPosi.top == docPosy.top && bodyPosi.left == docPosy.left && bodyPosi.bottom == docPosy.bottom && bodyPosi.right == docPosy.right) {
+                        bodyPosi = {
+                            top: -offsetParent.scrollTop,
+                            left: -offsetParent.scrollLeft,
+                            bottom: offsetParent.scrollHeight - offsetParent.scrollTop,
+                            right: offsetParent.scrollWidth - offsetParent.scrollLeft
+                        };
                     }
-                    bodyPosi = {
-                        top: 0,
-                        bottom: windowSize.h,
-                        left: 0,
-                        right: windowSize.w
-                    };
                 } else {
                     offsetParent = body;
                     bodyPosi = offsetParent.getBoundingClientRect();
@@ -23682,10 +24186,10 @@ ImgOps | https://imgops.com/#b#`;
 
 
                 var scrolled=getScrolled(offsetParent);
-                targetPosi.top = targetPosi.top - bodyPosi.top + scrolled.y;
-                targetPosi.left = targetPosi.left - bodyPosi.left + scrolled.x;
-                targetPosi.bottom = bodyPosi.bottom - targetPosi.bottom - scrolled.y;
-                targetPosi.right = bodyPosi.right - targetPosi.right - scrolled.x;
+                targetPosi.top = targetPosi.top - bodyPosi.top;
+                targetPosi.left = targetPosi.left - bodyPosi.left;
+                targetPosi.bottom = bodyPosi.bottom - targetPosi.bottom;
+                targetPosi.right = bodyPosi.right - targetPosi.right;
 
                 var fbs = this.floatBar.style;
                 var setPosition = {
@@ -23782,6 +24286,7 @@ ImgOps | https://imgops.com/#b#`;
                 window.addEventListener('scroll',this._scrollHandler,true);
             },
             hide:function(){
+                target = null;
                 clearTimeout(this.showTimer);
                 this.floatBar.style.opacity=0.01;
                 this.shown=false;
@@ -23882,6 +24387,7 @@ ImgOps | https://imgops.com/#b#`;
             var handleError;
             var cacheNum = 0;
             var xhr;
+            var useFetch = false;
 
             /**
             * @param  q  图片的选择器或函数
@@ -23892,7 +24398,7 @@ ImgOps | https://imgops.com/#b#`;
                     var iurl, iurls = [], cap, caps, doc = createDoc(html);
 
                     if(typeof q == 'function') {
-                        iurl = await q(html, doc, url, xhr);
+                        iurl = await q(html, doc, url + (post ? `#p{${post}}` : ""), xhr, GM_fetch);
                         if (iurl) {
                             if(iurl.url) {
                                 cap = iurl.cap;
@@ -23933,9 +24439,9 @@ ImgOps | https://imgops.com/#b#`;
                             cap: cap,
                             caps: caps
                         };
-                        caches[url] = cacheData;
+                        caches[url + (post || "")] = cacheData;
                         if (cacheNum) {
-                            storage.setListItem("xhrCache", url, cacheData, cacheNum);
+                            storage.setListItem("xhrCache", url + (post || ""), cacheData, cacheNum);
                         }
                     }
 
@@ -23950,8 +24456,12 @@ ImgOps | https://imgops.com/#b#`;
                     onload: function(req) {
                         try {
                             if(req.status > 399) throw 'Server error: ' + req.status;
-                            cb(req.responseText, req.finalUrl || url);
+                            else cb(req.responseText, req.finalUrl || url);
                         } catch(ex) {
+                            if (!useFetch && req.responseHeaders.indexOf("cloudflare") != -1) {
+                                useFetch = true;
+                                return downloadPage(url, post, headers, cb);
+                            }
                             handleError(ex);
                         }
                     },
@@ -23964,12 +24474,20 @@ ImgOps | https://imgops.com/#b#`;
                 }
                 if (headers) {
                     if (typeof headers == 'function') {
-                        headers = await headers(url, xhr);
+                        headers = await headers(url + (post ? `#p{${post}}` : ""), xhr, getCookie);
                     }
                     opts.headers = headers;
                 }
 
-                _GM_xmlhttpRequest(opts);
+                if (useFetch) {
+                    let fetchOption = {method: opts.method || 'GET', headers: opts.headers};
+                    if (opts.method && opts.method != 'GET') {
+                        fetchOption.body = opts.data || '';
+                    }
+                    fetch(opts.url, fetchOption).then(response => response.text()).then(data => {opts.onload({responseText: data})}).catch(e => opts.onerror(e));
+                } else {
+                    _GM_xmlhttpRequest(opts);
+                }
             }
 
             function createDoc(text) {
@@ -23995,7 +24513,7 @@ ImgOps | https://imgops.com/#b#`;
 
             function findFile(n, url) {
                 pretreatment(n, true);
-                var path = n.src || n.href || (n.children && n.children[0] &&  n.children[0].src);
+                var path = (n.dataset && n.dataset.src) || n.src || n.href || (n.children && n.children[0] &&  n.children[0].src);
                 if (/^video$/i.test(n.nodeName)) {
                     path = "video:" + path;
                 } else if (/^audio$/i.test(n.nodeName)) {
@@ -24028,7 +24546,7 @@ ImgOps | https://imgops.com/#b#`;
                     opt.url = opt.url.replace(/#p{.*/, "");
                 }
 
-                parsePage(opt.url, xhr.query || xhr.q, xhr.caption || xhr.c, xhr.post, opt.cb, xhr.headers, xhr.after);
+                parsePage(opt.url, xhr.query || xhr.q, xhr.caption || xhr.c, opt.post, opt.cb, xhr.headers, xhr.after);
             };
 
             return _;
@@ -24039,7 +24557,8 @@ ImgOps | https://imgops.com/#b#`;
 
         function pretreatment(img, fetchImg) {
             if (img.removeAttribute) img.removeAttribute("loading");
-            if (img.nodeName.toUpperCase() != "IMG" || (!fetchImg && img.src && !/^data/.test(img.src))) return;
+            if (img.nodeName.toUpperCase() != "IMG" || (!fetchImg && img.src && !img.srcset && !/^data/.test(img.src))) return;
+            if (img.src && !/(^data|loading|lazy)/.test(img.src)) return;
             let src;
             tprules.find(function(rule, index, array) {
                 try {
@@ -24059,14 +24578,14 @@ ImgOps | https://imgops.com/#b#`;
         function findPic(img){
             var imgPN=img;
             var imgPA,imgPE=[];
-            while(imgPN=imgPN.parentElement){
+            while(imgPN=imgPN.parentNode || imgPN.host){
                 if(imgPN.nodeName.toUpperCase()=='A'){
                     imgPA=imgPN;
                     break;
                 }
             }
             imgPN=img;
-            while(imgPN=imgPN.parentElement){
+            while(imgPN=imgPN.parentNode || imgPN.host){
                 if(imgPN.nodeName.toUpperCase()=='BODY'){
                     break;
                 }else{
@@ -24335,6 +24854,15 @@ ImgOps | https://imgops.com/#b#`;
                                     let reMatch = typeof site.xhr.url === "string" && site.xhr.url.match(/^\/(.*)\/(\w*)$/);
                                     if (reMatch) {
                                         site.xhr.url = toRE(reMatch[1], reMatch[2]);
+                                    } else if (Array.isArray(site.xhr.url)) {
+                                        let urlRe = toRE(site.xhr.url[0], "i");
+                                        let urlParam = site.xhr.url[1];
+                                        site.xhr.url = (a, p) => {
+                                            if (!a || !a.href) return;
+                                            if (urlRe.test(a.href)) {
+                                                return a.href.replace(urlRe, urlParam);;
+                                            }
+                                        };
                                     }
                                 }
                                 if (site.url && !urlChecked) {
@@ -24384,47 +24912,6 @@ ImgOps | https://imgops.com/#b#`;
                                     }
                                     if (site.mute) {
                                         self.mute = true;
-                                    }
-                                    if (site.xhr) {
-                                        let siteXhr = site.xhr;
-                                        if (siteXhr.url && !self.getExtSrc) {
-                                            self.xhrLink = true;
-                                            self.getExtSrc = function (ele) {
-                                                ele = ele || this;
-                                                let newSrc;
-                                                let a;
-                                                if (ele && ele.href) {
-                                                    a = ele;
-                                                } else {
-                                                    a = ele.parentNode;
-                                                    if (!a || !a.href) {
-                                                        a = null;
-                                                    }
-                                                }
-                                                if (siteXhr.url.test) {
-                                                    if (a && siteXhr.url.test(a.href)) {
-                                                        newSrc = a.href;
-                                                    }
-                                                } else if (typeof siteXhr.url === 'string') {
-                                                    try {
-                                                        if (a && ele.matches(siteXhr.url)) {
-                                                            newSrc = a.href;
-                                                        }
-                                                    } catch(e) {
-                                                        debug(e);
-                                                    }
-                                                } else {
-                                                    newSrc = siteXhr.url.call(ele, a, [], siteXhr);
-                                                }
-                                                if (newSrc) {
-                                                    self.xhr = siteXhr;
-                                                    return newSrc;
-                                                } else {
-                                                    self.xhr = null;
-                                                }
-                                                return newSrc;
-                                            }
-                                        }
                                     }
                                 }
                                 self.rules.push(site);
@@ -24521,10 +25008,51 @@ ImgOps | https://imgops.com/#b#`;
                 }
                 return "";
             },
+            getXhrLink: function(a, p) {
+                var newSrc, rule;
+                this.xhr = null;
+                this.xhrLink = false;
+                for (var i = 0; i < this.rules.length; i++) {
+                    rule = this.rules[i];
+                    if (rule.src) continue;
+                    if (rule.xhr) {
+                        if (rule.xhr.url) {
+                            if (rule.xhr.url.test) {
+                                if (a && rule.xhr.url.test(a.href)) {
+                                    newSrc = a.href;
+                                }
+                            } else if (typeof rule.xhr.url === 'string') {
+                                try {
+                                    if (a && a.matches(rule.xhr.url)) {
+                                        newSrc = a.href;
+                                    }
+                                } catch(e) {
+                                    debug(e);
+                                }
+                            } else {
+                                newSrc = rule.xhr.url.call(a, a, p, rule.xhr);
+                            }
+                            if (newSrc) {
+                                this.xhrLink = true;
+                                this.xhr = rule.xhr;
+                                return newSrc;
+                            }
+                        } else if (a) {
+                            newSrc = a.href;
+                            if (newSrc) {
+                                this.xhrLink = true;
+                                this.xhr = rule.xhr;
+                                return newSrc;
+                            }
+                        }
+                    }
+                }
+            },
             getImage: function(img, a, p, target) {
                 var newSrc, rule;
                 var base64Img = /^data:/i.test(img.src);
                 this.all = null;
+                this.xhr = null;
                 for (var i = 0; i < this.rules.length; i++) {
                     rule = this.rules[i];
                     if (rule.src && !toRE(rule.src).test(img.src)) continue;
@@ -24569,10 +25097,10 @@ ImgOps | https://imgops.com/#b#`;
                         }
                     } else newSrc = null;
                     if (!base64Img && rule.r && img.src && !Array.isArray(newSrc)) {
-                        if (!newSrc) newSrc = img.currentSrc || img.src;
+                        if (!newSrc) newSrc = img.src || img.currentSrc;
                         newSrc = this.replaceByRule(newSrc, rule);
                     }
-                    if (newSrc && newSrc.length > 0 && newSrc != (img.currentSrc || img.src)) {
+                    if (newSrc && newSrc.length > 0 && newSrc != (img.src || img.currentSrc)) {
                         debug(rule);
                         break;
                     } else newSrc = null;
@@ -24847,7 +25375,7 @@ ImgOps | https://imgops.com/#b#`;
             }, prefs.floatBar.showDelay || 0)
         }
 
-        function checkFloatBar(_target, type, canPreview, clientX, clientY, altKey) {
+        function checkFloatBar(_target, type, canPreview, clientX, clientY, altKey, composedTarget) {
             let target = _target;
             if (!target || target.id == "pv-float-bar-container" ||
                 (target.parentNode && (target.parentNode.id == "icons" || target.parentNode.className == "search-jumper-btn")) ||
@@ -24875,6 +25403,9 @@ ImgOps | https://imgops.com/#b#`;
                 }
             }
 
+            if (target.nodeName.toUpperCase() == 'IMG' && !target.naturalHeight) {
+                target = target.parentNode;
+            }
             // 扩展模式，检查前面一个是否为 img
             if (target.nodeName.toUpperCase() != 'IMG' && matchedRule.rules.length > 0 && matchedRule.ext) {
                 var _type = typeof matchedRule.ext;
@@ -24901,10 +25432,10 @@ ImgOps | https://imgops.com/#b#`;
                     if (!target) return;
                 }
             }
-            let bgReg = /.*url\(\s*["']?([^ad\s'"].+?)["']?\s*\)([^'"]|$)/i;
-            let bgRegLong = /^\s*url\(\s*["']?([^ad\s'"].+?)["']?\s*\)([^'"]|$)/i;
+            let bgReg = /.*url\(\s*["']?([^ad\s'"#].+?)["']?\s*\)([^'"]|$)/i;
+            let bgRegLong = /^\s*url\(\s*["']?([^ad\s'"#].+?)["']?\s*\)([^'"]|$)/i;
             let result, targetBg, hasBg = node => {
-                if(node.nodeName.toUpperCase() == "HTML" || node.nodeName == "#document"){
+                if(/^(html|body|#document)$/i.test(node.nodeName) || node.nodeType != 1){
                     return false;
                 }
                 if (node.clientWidth <= prefs.floatBar.minSizeLimit.w || node.clientHeight <= prefs.floatBar.minSizeLimit.h) {
@@ -24936,10 +25467,24 @@ ImgOps | https://imgops.com/#b#`;
                 }
                 return targetBg;
             };
-            if (target.nodeName.toUpperCase() != 'IMG' && matchedRule.getExtSrc) {
-                let nsrc;
+            if (target.nodeName.toUpperCase() != 'IMG') {
+                let nsrc, imgPN, imgPA, imgPE = [];
                 try {
-                    nsrc = matchedRule.getExtSrc.call(target);
+                    if (matchedRule.getExtSrc) {
+                        nsrc = matchedRule.getExtSrc.call(target);
+                    }
+                    if (!nsrc && target.href) {
+                        imgPN = target;
+                        let i = 0;
+                        while (imgPN = imgPN.parentNode || imgPN.host) {
+                            if (i++ > 5 || imgPN.nodeName.toUpperCase() == 'BODY') {
+                                break;
+                            } else {
+                                imgPE.push(imgPN);
+                            }
+                        }
+                        nsrc = matchedRule.getXhrLink(target, imgPE);
+                    }
                 } catch(ex) {
                     throwErrorInfo(ex);
                 }
@@ -24955,16 +25500,16 @@ ImgOps | https://imgops.com/#b#`;
                         src = nsrc[1];
                     }
                     if (!matchedRule.xhrLink) {
-                        let imgPN = target;
-                        let imgPA, imgPE = [];
+                        imgPN = target;
+                        imgPE = [];
                         do {
                             if (imgPN.nodeName.toUpperCase() == 'A') {
                                 imgPA = imgPN;
                                 break;
                             }
-                        } while (imgPN = imgPN.parentElement);
+                        } while (imgPN = imgPN.parentNode || imgPN.host);
                         imgPN = target;
-                        while (imgPN = imgPN.parentElement) {
+                        while (imgPN = imgPN.parentNode || imgPN.host) {
                             if (imgPN.nodeName.toUpperCase() == 'BODY') {
                                 break;
                             } else {
@@ -24985,6 +25530,41 @@ ImgOps | https://imgops.com/#b#`;
                     };
                 }
             }
+            var checkUniqueImgWin = function() {
+                let invert = !canPreview && prefs.floatBar.globalkeys.invertInitShow && prefs.floatBar.globalkeys.type == "hold";
+                if (canPreview || invert) {
+                    let forceShow = (() => {
+                        if (result.type != "link" && result.type != "rule" && result.src == result.imgSrc) {
+                            if (result.imgAS.w < result.imgCS.w * 1.3 && result.imgAS.h < result.imgCS.h * 1.3) {
+                                if (result.img && result.img.childElementCount) {
+                                    if (result.type == "force") return false;
+                                    if (prefs.floatBar.globalkeys.invertInitShow) return false;
+                                }
+                                var wSize = getWindowSize();
+                                if (prefs.floatBar.globalkeys.invertInitShow && result.imgAS.w <= wSize.w && result.imgAS.h <= wSize.h) return false;
+                            }
+                        }
+                        return true;
+                    })();
+                    if (forceShow) {
+                        if (invert) return false;
+                    } else {
+                        if (!invert) return false;
+                    }
+                    uniqueImgWinInitX = clientX;
+                    uniqueImgWinInitY = clientY;
+                    if (uniqueImgWin && !uniqueImgWin.removed) {
+                        if (uniqueImgWin.src == result.src) return true;
+                        uniqueImgWin.remove();
+                    }
+                    waitUntilMove(_target, () => {
+                        new LoadingAnimC(result, 'popup', prefs.waitImgLoad, prefs.framesPicOpenInTopWindow);
+                    });
+                    return true;
+                } else {
+                    return false;
+                }
+            };
             if (!result) {
                 if (target.nodeName.toUpperCase() != 'IMG' && target.dataset.role == "img") {
                     let img = target.parentNode.querySelector('img');
@@ -25002,30 +25582,56 @@ ImgOps | https://imgops.com/#b#`;
                         };
                     }
                 } else if (target.nodeName.toUpperCase() != 'IMG') {
+                    if (selectionClientRect &&
+                        clientX > selectionClientRect.left &&
+                        clientX < selectionClientRect.left + selectionClientRect.width &&
+                        clientY > selectionClientRect.top &&
+                        clientY < selectionClientRect.top + selectionClientRect.height) {
+                        result = {
+                            src: selectionStr,
+                            type: "link",
+                            imgSrc: selectionStr,
+                            noActual:true,
+                            img: target
+                        };
+                        checkUniqueImgWin();
+
+                        if (!floatBar) {
+                            floatBar = new FloatBarC();
+                        }
+                        floatBar.start(result);
+
+                        return;
+                    }
+                    if (composedTarget && composedTarget.naturalHeight) target = composedTarget;
                     let found = false;
                     if (target.nodeName.toUpperCase() == "AREA") target = target.parentNode;
                     var broEle, broImg;
-                    if (target.nodeName.toUpperCase() != 'A' && target.parentNode && target.parentNode.style && !/flex|grid|table/.test(getComputedStyle(target.parentNode).display)) {
+                    if (target.parentNode && target.parentNode.style && !/flex|grid|table/.test(getComputedStyle(target.parentNode).display)) {
                         broEle = target.previousElementSibling;
                         while (broEle) {
-                            if (broEle.nodeName == "IMG") broImg = broEle;
-                            else if (broEle.nodeName == "PICTURE") broImg = broEle.querySelector("img");
-                            if (getComputedStyle(broEle).position !== "absolute") break;
+                            if (broEle.offsetWidth && broEle.offsetWidth > target.offsetWidth>>1) {
+                                if (broEle.nodeName == "IMG") broImg = broEle;
+                                else if (broEle.nodeName == "PICTURE") broImg = broEle.querySelector("img");
+                            }
+                            if (broEle.offsetWidth && broEle.offsetHeight && getComputedStyle(broEle).position !== "absolute") break;
                             broEle = broEle.previousElementSibling;
                         }
                         if (broEle == target) broEle = null;
                         else if (!broEle) {
                             broEle = target.nextElementSibling;
                             while (broEle) {
-                                if (broEle.nodeName == "IMG") broImg = broEle;
-                                else if (broEle.nodeName == "PICTURE") broImg = broEle.querySelector("img");
+                                if (broEle.offsetWidth && broEle.offsetWidth > target.offsetWidth>>1) {
+                                    if (broEle.nodeName == "IMG") broImg = broEle;
+                                    else if (broEle.nodeName == "PICTURE") broImg = broEle.querySelector("img");
+                                }
                                 if (getComputedStyle(broEle).position == "absolute") break;
                                 broEle = broEle.nextElementSibling;
                             }
                             if (broEle == target) broEle = null;
                         }
                     }
-                    if (target.children.length == 1 && !(target.textContent && target.textContent.trim()) && target.children[0].nodeName == "IMG") {
+                    if (target.children.length == 1 && !(target.textContent && target.textContent.trim()) && target.children[0].naturalHeight) {
                         target = target.children[0];
                         found = true;
                     } else if (prefs.floatBar.listenBg && hasBg(target)) {
@@ -25075,25 +25681,19 @@ ImgOps | https://imgops.com/#b#`;
                         } else if (target.parentNode.nodeName.toUpperCase() == 'IMG') {
                             target = target.parentNode;
                             found = true;
-                        } else if (prefs.floatBar.listenBg && hasBg(target.parentNode)) {
-                            target = target.parentNode;
-                            let src = targetBg, nsrc = src, noActual = true, type = "scale";
-                            result = {
-                                src: nsrc,
-                                type: type,
-                                imgSrc: src,
-                                noActual:noActual,
-                                img: target
-                            };
-                            found = true;
                         }
                     }
                     if (!found) {
                         let checkEle = target;
                         while(checkEle && !(checkEle.textContent && checkEle.textContent.trim()) && checkEle.children.length === 1) {
                             checkEle = checkEle.children[0];
+                            if (target.clientWidth && target.clientWidth > checkEle.clientWidth * 1.2) break;
                             if (checkEle.nodeName === "IMG") {
                                 target = checkEle;
+                                found = true;
+                                break;
+                            } else if (checkEle.nodeName === "PICTURE") {
+                                target = checkEle.querySelector("img");
                                 found = true;
                                 break;
                             } else if (prefs.floatBar.listenBg && hasBg(checkEle)) {
@@ -25110,16 +25710,18 @@ ImgOps | https://imgops.com/#b#`;
                             }
                         }
                     }
-                    if (!found && target.children && target.children[0] && target.children[0].nodeName.toUpperCase() == 'IMG') {
-                        let img = target.children[0];
-                        while (img.nextElementSibling && img.nextElementSibling.nodeName.toUpperCase() == 'IMG') {
-                            img = img.nextElementSibling;
-                        }
-                        let rect = img.getBoundingClientRect();
+                    if (!found && target.children && target.children.length) {
+                        let img = target.querySelector("img");
+                        if (img) {
+                            while (img.nextElementSibling && img.nextElementSibling.nodeName.toUpperCase() == 'IMG') {
+                                img = img.nextElementSibling;
+                            }
+                            let rect = img.getBoundingClientRect();
 
-                        if (clientY >= rect.top && clientY <= rect.bottom && clientX >= rect.left  &&  clientX <= rect.right) {
-                            target = img;
-                            found = true;
+                            if (clientY >= rect.top && clientY <= rect.bottom && clientX >= rect.left  &&  clientX <= rect.right) {
+                                target = img;
+                                found = true;
+                            }
                         }
                     }
                     if (!found && document.elementsFromPoint) {
@@ -25167,20 +25769,32 @@ ImgOps | https://imgops.com/#b#`;
                         let imgs = target.shadowRoot.querySelectorAll('img');
                         if (imgs.length === 1) target = imgs[0];
                     }
+                    if (!found && prefs.floatBar.listenBg && hasBg(target.parentNode)) {
+                        target = target.parentNode;
+                        let src = targetBg, nsrc = src, noActual = true, type = "scale";
+                        result = {
+                            src: nsrc,
+                            type: type,
+                            imgSrc: src,
+                            noActual:noActual,
+                            img: target
+                        };
+                        found = true;
+                    }
                     if (result && !/^data:/i.test(result.src)) {
                         if (matchedRule.rules.length > 0 && target.nodeName.toUpperCase() != 'IMG') {
                             let src = result.src, img = {src: src}, type, imgSrc = src;
                             try {
                                 let imgPN=target;
                                 let imgPA,imgPE=[];
-                                while(imgPN=imgPN.parentElement){
+                                while(imgPN=imgPN.parentNode || imgPN.host){
                                     if(imgPN.nodeName.toUpperCase()=='A'){
                                         imgPA=imgPN;
                                         break;
                                     }
                                 }
                                 imgPN=target;
-                                while(imgPN=imgPN.parentElement){
+                                while(imgPN=imgPN.parentNode || imgPN.host){
                                     if(imgPN.nodeName.toUpperCase()=='BODY'){
                                         break;
                                     }else{
@@ -25236,59 +25850,18 @@ ImgOps | https://imgops.com/#b#`;
                     }
                 }
             }
-            var checkUniqueImgWin = function() {
-                if (canPreview) {
-                    if (result.type != "link" && result.type != "rule" && result.src == result.imgSrc) {
-                        if (result.imgAS.w < result.imgCS.w * 1.6 && result.imgAS.h < result.imgCS.h * 1.6) {
-                            if (result.img && result.img.childElementCount) return false;
-                            var wSize = getWindowSize();
-                            if (prefs.floatBar.globalkeys.invertInitShow && result.imgAS.w <= wSize.w && result.imgAS.h <= wSize.h) return false;
-                        }
-                    }
-                    uniqueImgWinInitX = clientX;
-                    uniqueImgWinInitY = clientY;
-                    if (uniqueImgWin && !uniqueImgWin.removed) {
-                        if (uniqueImgWin.src == result.src) return true;
-                        uniqueImgWin.remove();
-                    }
-                    waitUntilMove(_target, () => {
-                        new LoadingAnimC(result, 'popup', prefs.waitImgLoad, prefs.framesPicOpenInTopWindow);
-                    });
-                    return true;
-                } else {
-                    return false;
-                }
-            };
 
             if (!result && target.nodeName.toUpperCase() != 'IMG') {
-                if (selectionClientRect &&
-                    clientX > selectionClientRect.left &&
-                    clientX < selectionClientRect.left + selectionClientRect.width &&
-                    clientY > selectionClientRect.top &&
-                    clientY < selectionClientRect.top + selectionClientRect.height) {
-                    result = {
-                        src: selectionStr,
-                        type: "link",
-                        imgSrc: selectionStr,
-                        noActual:true,
-                        img: target
-                    };
-                    checkUniqueImgWin();
-
-                    if (!floatBar) {
-                        floatBar = new FloatBarC();
+                let i = 0;
+                while(target) {
+                    if (i++ > 5) {
+                        target = null;
+                        break;
                     }
-                    floatBar.start(result);
-
-                    return;
-                }
-
-
-                if (target.nodeName.toUpperCase() == 'A' && imageReg.test(target.href)) {
-                } else if (target.parentNode && target.parentNode.nodeName.toUpperCase() == 'A' && imageReg.test(target.parentNode.href)) {
+                    if ((target.nodeName == 'A' || target.nodeName == 'a') && imageReg.test(target.href)) {
+                        break;
+                    }
                     target = target.parentNode;
-                } else {
-                    target = null;
                 }
                 if (target) {
                     let src = target.href;
@@ -25391,7 +25964,7 @@ ImgOps | https://imgops.com/#b#`;
             }
         }
 
-        var checkFloatBarTimer, initMouse = false;
+        var checkFloatBarTimer, initMouse = false, composedTarget, checking = false, target, type, clientX, clientY, altKey;
         function globalMouseoverHandler(e) {
             if (galleryMode) return;//库模式全屏中......
             if (e.target == ImgWindowC.overlayer) return;
@@ -25402,7 +25975,7 @@ ImgOps | https://imgops.com/#b#`;
                     return;
                 }
                 if ((uniqueImgWin && !uniqueImgWin.removed && !uniqueImgWin.previewed)) {
-                    if (canPreview) {
+                    if (canPreview || prefs.floatBar.globalkeys.invertInitShow) {
                         uniqueImgWinInitX = e.clientX;
                         uniqueImgWinInitY = e.clientY;
                         uniqueImgWin.followPos(uniqueImgWinInitX, uniqueImgWinInitY);
@@ -25411,6 +25984,13 @@ ImgOps | https://imgops.com/#b#`;
                     }
                     return;
                 } else {
+                    if (checking) {
+                        setTimeout(() => {
+                            checking = false;
+                        }, 50);
+                        return;
+                    }
+                    checking = true;
                     if (!canPreview) return;
                     let target = e.target;
                     if (target.nodeName == "PICTURE"){
@@ -25420,12 +26000,34 @@ ImgOps | https://imgops.com/#b#`;
                 }
             }
             if (!initMouse) return;
+            if (e.type == "keydown") {
+                if (!target) return;
+            } else {
+                target = e.target;
+                type = e.type;
+                clientX = e.clientX;
+                clientY = e.clientY;
+                altKey = e.altKey;
+                if (e.type !== "mousemove") {
+                    let path = e && e.composedPath && e.composedPath();
+                    composedTarget = path && path[0];
+                }
+            }
             clearTimeout(checkFloatBarTimer);
             checkFloatBarTimer = setTimeout(function() {
-                if (!e || !e.target || !e.target.parentNode) return;
+                if (!target || !target.parentNode) return;
                 if (gallery && gallery.shown) return;
-                checkFloatBar(e.target, e.type, canPreview, e.clientX, e.clientY, e.altKey);
+                checkFloatBar(target, type, canPreview, clientX, clientY, altKey, composedTarget);
             }, 50);
+            if (e.target.shadowRoot) {
+                if (!e.target.shadowRoot.initListener) {
+                    e.target.shadowRoot.initListener = true;
+                    e.target.shadowRoot.addEventListener('mouseenter', (e) => {
+                        globalMouseoverHandler(e);
+                    }, true);
+                    e.target.shadowRoot.addEventListener('mousemove', globalMouseoverHandler, true);
+                }
+            }
         }
 
         var selectionClientRect, selectionStr, selectionChanging = false;
@@ -25436,7 +26038,9 @@ ImgOps | https://imgops.com/#b#`;
                 selectionChanging = false;
                 const selection = window.getSelection();
                 selectionStr = selection.toString();
-                if (selectionStr && selectionStr.length < 500 && imageReg.test(selectionStr)) {
+                if (selectionStr && selectionStr.length < 500) selectionStr = selectionStr.trim().replace(/^t?t?p?s?:/, "https:");
+                else selectionStr = '';
+                if (selectionStr && imageReg.test(selectionStr)) {
                     const range = selection.getRangeAt(0);
                     selectionClientRect = range.getBoundingClientRect();
                 } else {
@@ -25448,6 +26052,55 @@ ImgOps | https://imgops.com/#b#`;
         document.addEventListener('visibilitychange', e => {
             initMouse = false;
         });
+
+        var curLoadingMedia;
+        document.addEventListener('securitypolicyviolation', (e) => {
+            if (!e.violatedDirective.includes('media-src')) {
+                return;
+            }
+            if (curLoadingMedia && curLoadingMedia.src == e.blockedURI) {
+                _GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: curLoadingMedia.src,
+                    responseType: 'blob',
+                    onload: function(response) {
+                        const blobUrl = URL.createObjectURL(response.response);
+
+                        curLoadingMedia.src = blobUrl;
+                        curLoadingMedia.load();
+                        curLoadingMedia.play().catch(err => console.warn('[CSP Fixer] Autoplay after fix was blocked.', err));
+
+                        const releaseBlob = () => URL.revokeObjectURL(blobUrl);
+                        curLoadingMedia.addEventListener('ended', releaseBlob);
+                        window.addEventListener('beforeunload', releaseBlob);
+                    }
+                });
+            }
+        });
+        function createVideo() {
+            let media = document.createElement('video');
+            media.addEventListener('error', e => {
+                if (/^blob:/.test(media.src)) return;
+                _GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: media.src,
+                    responseType: 'blob',
+                    onload: function(response) {
+                        const blobUrl = URL.createObjectURL(response.response);
+
+                        media.src = blobUrl;
+                        media.load();
+                        media.play().catch(err => console.warn('[CSP Fixer] Autoplay after fix was blocked.', err));
+
+                        const releaseBlob = () => URL.revokeObjectURL(blobUrl);
+                        media.addEventListener('ended', releaseBlob);
+                        window.addEventListener('beforeunload', releaseBlob);
+                        curLoadingMedia = null;
+                    }
+                });
+            });
+            return media;
+        }
 
         async function input(sel, v) {
             await new Promise((resolve) => {
@@ -25619,6 +26272,7 @@ ImgOps | https://imgops.com/#b#`;
             return false;
         }
 
+        let keypressing = false;
         function keydown(event) {
 
             //if (ImgWindowC.showing) return;
@@ -25628,6 +26282,10 @@ ImgOps | https://imgops.com/#b#`;
             }
             var key = event.key;
             if(checkGlobalKeydown(event)){
+                if (!keypressing) {
+                    globalMouseoverHandler(event);
+                    keypressing = true;
+                }
                 if(prefs.floatBar.keys.enable && key==prefs.floatBar.keys.gallery){
                     openGallery();
                     event.stopPropagation();
@@ -25644,7 +26302,9 @@ ImgOps | https://imgops.com/#b#`;
             }
 
             if (event) {
-                if (event.ctrlKey || event.metaKey) return false;
+                if (event.ctrlKey || event.metaKey) {
+                    return false;
+                }
                 if (window.getSelection().toString()) return false;
             }
             if (floatBar && isKeyDownEffectiveTarget(event.target)) {
@@ -25659,6 +26319,7 @@ ImgOps | https://imgops.com/#b#`;
         }
 
         function keyup(event) {
+            keypressing = false;
             let isFuncKey = !event.isTrusted || event.key == 'Alt' || event.key == 'Control' || event.key == 'Meta';
             if(isFuncKey && (prefs.floatBar.globalkeys.type == "hold" || !checkPreview(event)) && (uniqueImgWin && !uniqueImgWin.removed)){
                 clearTimeout(checkFloatBarTimer);
@@ -25711,6 +26372,7 @@ ImgOps | https://imgops.com/#b#`;
             if (e.relatedTarget == ImgWindowC.overlayer) return;
             if(uniqueImgWin && !uniqueImgWin.removed){
                 if(checkPreview(e)){
+                    if (!uniqueImgWin.data.img || !uniqueImgWin.data.img.parentNode) return uniqueImgWin && uniqueImgWin.remove();
                     let showArea=uniqueImgWin.data.img.getBoundingClientRect();
                     if(e.clientX < showArea.left + 20 ||
                       e.clientX > showArea.right - 20 ||
@@ -25788,7 +26450,7 @@ ImgOps | https://imgops.com/#b#`;
         GM_config.init({
             id: 'pv-prefs',
             title: GM_config.create('a', {
-                href: 'https://greasyfork.org/scripts/24204-picviewer-ce',
+                href: 'https://hoothin.github.io/UserScripts/Picviewer%20CE%2B',
                 target: '_blank',
                 textContent: 'Picviewer CE+ '+i18n("config"),
                 title: i18n("openHomePage")
@@ -26198,7 +26860,8 @@ ImgOps | https://imgops.com/#b#`;
                     label: i18n("aria2Host"),
                     type: 'text',
                     className: 'order',
-                    "default": prefs.gallery.aria2Host || 'http://localhost:6800'
+                    "default": prefs.gallery.aria2Host || 'http://localhost:6800',
+                    after: '/jsonrpc'
                 },
                 'gallery.aria2Token': {
                     label: i18n("aria2Token"),
@@ -26509,7 +27172,8 @@ ImgOps | https://imgops.com/#b#`;
                                             node: "a",
                                             text: "Hoothin",
                                             attr: {
-                                                "href": "mailto:rixixi@gmail.com"
+                                                href: "https://www.hoothin.com/",
+                                                target: "_blank"
                                             }
                                         },
                                         {
@@ -26781,6 +27445,7 @@ ImgOps | https://imgops.com/#b#`;
         }
 
         function openPrefs() {
+            if (window.top != window.self) return;
             let fieldsSearchData = GM_config.fields["gallery.searchData"];
             if (fieldsSearchData && fieldsSearchData.value) {
                 fieldsSearchData.value = fieldsSearchData.value.replace(/&amp;/g, "&").replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;");
