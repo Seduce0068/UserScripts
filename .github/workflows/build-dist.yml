@@ -26,8 +26,8 @@ jobs:
 
       - name: Commit and push dist.user.js
         run: |
-          git config --local user.email "rixixi@gmail.com"
-          git config --local user.name "hoothin-update"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add "Picviewer CE+/dist.user.js"
           git commit -m "chore(Picviewer CE+): Auto-generate dist.user.js"
           git push https://${{ secrets.ACTION_SECRET }}@github.com/${{ github.repository }}

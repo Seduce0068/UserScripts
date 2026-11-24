@@ -46,5 +46,5 @@ jobs:
       with:
         url: http://wedata.net/databases/AutoPagerize/items_all.json
         file_in_repo: Pagetual/items_all.json
-        git_user: hoothin-update
-        git_email: rixixi@gmail.com
+        git_user: github-actions[bot]
+        git_email: github-actions[bot]@users.noreply.github.com
