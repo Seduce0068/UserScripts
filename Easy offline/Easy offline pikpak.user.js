@@ -20,8 +20,20 @@
     'use strict';
     let info = GM_getValue("pikpakUserInfo"), device_id, user_id;
     const CLIENT_ID = "YNxT9w7GMdWvEOKa";
-    const CLIENT_SECRET = "REDACTED";
+    const CLIENT_SECRET_KEY = "pikpakClientSecret";
     const CLIENT_VERSION = "1.47.1";
+    // クライアントシークレットは配布スクリプトへ埋め込まない。
+    // 利用者自身の PikPak アプリ登録値を初回に入力し、GM 設定へ保存する。
+    function getClientSecret() {
+        let secret = GM_getValue(CLIENT_SECRET_KEY, "");
+        if (!secret) {
+            secret = String(prompt("PikPak client_secret（利用者自身の値を入力）") || "").trim();
+            if (secret) {
+                GM_setValue(CLIENT_SECRET_KEY, secret);
+            }
+        }
+        return secret;
+    }
     const PACKAG_ENAME = "com.pikcloud.pikpak";
     const SDK_VERSION = "2.0.4.204000";
     const APP_NAME = "com.pikcloud.pikpak";
@@ -197,7 +209,7 @@
                 if (!info.loginInfo || info.loginInfo.expires < new Date().getTime()) {
                     let data = {
                         "client_id": CLIENT_ID,
-                        "client_secret": CLIENT_SECRET,
+                        "client_secret": getClientSecret(),
                         "password": info.userPass,
                         "username": info.userName,
                         "captcha_token": info.captchaData.captcha_token,
