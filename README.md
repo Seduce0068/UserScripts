@@ -44,8 +44,8 @@
 
 <a href="https://www.star-history.com/?repos=hoothin%2FUserScripts&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=hoothin/UserScripts&type=date&theme=dark&legend=top-left&sealed_token=REDACTED09n99T3Av7_pdVnQtLfubl0pp_5zKqxrHD8r0WdR1EYD4-r5OfiqxvgcjvMMvgvJK5hQQ" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=hoothin/UserScripts&type=date&legend=top-left&sealed_token=REDACTED09n99T3Av7_pdVnQtLfubl0pp_5zKqxrHD8r0WdR1EYD4-r5OfiqxvgcjvMMvgvJK5hQQ" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=hoothin/UserScripts&type=date&legend=top-left&sealed_token=REDACTED09n99T3Av7_pdVnQtLfubl0pp_5zKqxrHD8r0WdR1EYD4-r5OfiqxvgcjvMMvgvJK5hQQ" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=hoothin/UserScripts&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=hoothin/UserScripts&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=hoothin/UserScripts&type=date&legend=top-left" />
  </picture>
 </a>

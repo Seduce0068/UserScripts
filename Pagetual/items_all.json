@@ -2612,8 +2612,8 @@
     "insertBefore": "",
     "pageElement": "//table[@class='normal']",
     "nextLink": "//a[contains(text(), '次へ')]",
-    "url": "^https://koan\\.osaka-u\\.ac\\.jp/campusweb/campussquare",
-    "exampleUrl": "https://koan.osaka-u.ac.jp/campusweb/campussquare.do?_flowExecutionKey=REDACTED20-6978-C6CE-6E49A7FA2A64"
+    "url": "^https://example\\.com/campusweb/campussquare",
+    "exampleUrl": "https://example.com/campusweb/campussquare.do"
   },
   "created_by": "sunny",
   "resource_url": "http://wedata.net/items/85983",
